@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1042853929889",
+    "project_id": "ross-ai-b6809",
+    "storage_bucket": "ross-ai-b6809.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1042853929889:android:9a8e4f7ddb137e899121e0",
+        "android_client_info": {
+          "package_name": "com.example.ross_ai_1"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1042853929889-33qo9f34dgraulecq5k591npl2pejt1m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6czzITpkTpiMnL5qnam0ZLnyPSI3Q7Tk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1042853929889-33qo9f34dgraulecq5k591npl2pejt1m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
