@@ -50,13 +50,13 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCOfNKl9Qj7GnNPTsqZTbDmezXoL_B525M',
-    appId: '1:1042853929889:web:6cf749af10e513cb9121e0',
-    messagingSenderId: '1042853929889',
-    projectId: 'ross-ai-b6809',
-    authDomain: 'ross-ai-b6809.firebaseapp.com',
-    storageBucket: 'ross-ai-b6809.firebasestorage.app',
-    measurementId: 'G-3EK1BL44X2',
+  apiKey: "AIzaSyCOfNKl9Qj7GnNPTsqZTbDmezXoL_B525M",
+  authDomain: "ross-ai-b6809.firebaseapp.com",
+  projectId: "ross-ai-b6809",
+  storageBucket: "ross-ai-b6809.firebasestorage.app",
+  messagingSenderId: "1042853929889",
+  appId: "1:1042853929889:web:6cf749af10e513cb9121e0",
+  measurementId: "G-3EK1BL44X2"
   );
 
   static const FirebaseOptions android = FirebaseOptions(

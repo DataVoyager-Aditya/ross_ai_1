@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:ross_ai_1/auth/provider/auth_provider.dart';
 import 'package:ross_ai_1/firebase_options.dart';
 import 'package:ross_ai_1/jurisdiction_checker/jurisdiction_checker.dart';
 import './home/home_page.dart';
@@ -10,13 +12,22 @@ import 'package:ross_ai_1/profile/components/feedback_page.dart';
 import 'package:ross_ai_1/profile/components/preference_page.dart';
 import '../precedent_finder/precedent_finder.dart';
 import '../timeline_extractor/timeline_extractor.dart';
+import "package:ross_ai_1/auth/signin.dart";
+import "package:ross_ai_1/auth/signup.dart";
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runZonedGuarded(
     () {
-      runApp(const MyApp());
+      runApp(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (context) => FirebaseAuthProvider()),
+          ],
+          child: const MyApp(),
+        ),
+      );
     },
     (error, stackTrace) {
       // Handle errors here, such as logging them to a service
@@ -45,7 +56,15 @@ class MyApp extends StatelessWidget {
       ),
       debugShowCheckedModeBanner: false,
       title: "Ross_AI",
-      home: HomePage(),
+      home: Consumer<FirebaseAuthProvider>(
+        builder: (context, authProvider, child) {
+          if (authProvider.currentUser != null) {
+            return const HomePage();
+          } else {
+            return const LoginPage();
+          }
+        },
+      ),
       routes: {
         '/home': (context) => const HomePage(),
         '/precedents': (context) => const PrecedentFinder(),
@@ -54,6 +73,8 @@ class MyApp extends StatelessWidget {
         '/profile': (_) => const ProfilePage(),
         '/preferences': (_) => const PreferencesPage(),
         '/feedback': (_) => const FeedbackPage(),
+        '/login': (context) => const LoginPage(),
+        '/signup': (context) => const SignUpPage(),
       },
     );
   }

@@ -1,0 +1,22 @@
+{
+  "name": "timeline-extractor-backend",
+  "version": "1.0.0",
+  "description": "Free Timeline Extraction Backend using Vercel",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod",
+    "build": "echo 'No build step required'"
+  },
+  "dependencies": {
+    "axios": "^1.4.0",
+    "cors": "^2.8.5",
+    "firebase-admin": "^11.8.0"
+  },
+  "devDependencies": {
+    "vercel": "^32.0.0"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}

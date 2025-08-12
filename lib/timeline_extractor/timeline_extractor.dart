@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:ross_ai_1/timeline_extractor/components/extracted_events_design.dart';
 import '../variables/profile.dart';
 import '../timeline_extractor/utils/get_icon.dart';
-import '../variables/extracted_events.dart';
 import '../utils/loading_animation.dart';
-
+import 'provider/timeline_extractor_provider.dart';
 
 class TimelineExtractor extends StatefulWidget {
   const TimelineExtractor({super.key});
@@ -15,17 +15,14 @@ class TimelineExtractor extends StatefulWidget {
 
 class _TimelineExtractorState extends State<TimelineExtractor> {
   final TextEditingController _textController = TextEditingController();
-  late Future<List<Map<String, dynamic>>> _extractedFuture;
-
-  Future<List<Map<String, dynamic>>> _simulateExtraction() async {
-    await Future.delayed(Duration(seconds: 2)); // simulate delay
-    return extractedEvents;
-  }
 
   @override
   void initState() {
     super.initState();
-    _extractedFuture = Future.value([]); // initially empty
+    // Load recent cases when the page initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<TimelineExtractorProvider>().loadRecentCases();
+    });
   }
 
   Widget _buildTimeline(List<Map<String, dynamic>> events) {
@@ -93,6 +90,20 @@ class _TimelineExtractorState extends State<TimelineExtractor> {
     );
   }
 
+  IconData _getFileIcon(String filePath) {
+    final extension = filePath.split('.').last.toLowerCase();
+    switch (extension) {
+      case 'pdf':
+        return Icons.picture_as_pdf;
+      case 'docx':
+        return Icons.description;
+      case 'txt':
+        return Icons.text_snippet;
+      default:
+        return Icons.insert_drive_file;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -111,11 +122,11 @@ class _TimelineExtractorState extends State<TimelineExtractor> {
                 children: [
                   GestureDetector(
                     onTap: () async {
-                          showLegalLoader(context);
-                          await Future.delayed(Duration(seconds: 4));
-                          Navigator.pop(context); // dismiss loader
-                          Navigator.pushNamed(context, '/home');
-                        },
+                      showLegalLoader(context);
+                      await Future.delayed(Duration(seconds: 4));
+                      Navigator.pop(context); // dismiss loader
+                      Navigator.pushNamed(context, '/home');
+                    },
                     child: Image.asset(
                       "assets/images/logo1.png",
                       height: 80,
@@ -131,7 +142,11 @@ class _TimelineExtractorState extends State<TimelineExtractor> {
                           Navigator.pop(context); // dismiss loader
                           Navigator.pushNamed(context, '/home');
                         },
-                        child: Text("Dashboard", style: TextStyle(fontSize: 15))),
+                        child: Text(
+                          "Dashboard",
+                          style: TextStyle(fontSize: 15),
+                        ),
+                      ),
                       SizedBox(width: 35),
                       GestureDetector(
                         onTap: () async {
@@ -140,7 +155,11 @@ class _TimelineExtractorState extends State<TimelineExtractor> {
                           Navigator.pop(context); // dismiss loader
                           Navigator.pushNamed(context, '/precedents');
                         },
-                        child: Text("Precedent Finder", style: TextStyle(fontSize: 15))),
+                        child: Text(
+                          "Precedent Finder",
+                          style: TextStyle(fontSize: 15),
+                        ),
+                      ),
                       SizedBox(width: 35),
                       GestureDetector(
                         onTap: () async {
@@ -195,40 +214,132 @@ class _TimelineExtractorState extends State<TimelineExtractor> {
                   ),
                   SizedBox(height: 30),
 
-                  Container(
-                    width: double.infinity,
-                    height: 160,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey, width: 1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                  Consumer<TimelineExtractorProvider>(
+                    builder: (context, provider, child) {
+                      return Column(
                         children: [
-                          Text(
-                            "Drag and drop or paste your document here",
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          SizedBox(height: 5),
-                          Text(
-                            "Supported formats: PDF, DOCX, TXT",
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                          SizedBox(height: 15),
-                          ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              foregroundColor: Colors.black,
-                              backgroundColor: Colors.white,
-                              side: BorderSide(color: Colors.grey.shade400),
-                              elevation: 0,
+                          Container(
+                            width: double.infinity,
+                            height: 160,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey, width: 1),
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Text("Browse Files"),
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "Drag and drop or paste your document here",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 5),
+                                  Text(
+                                    "Supported formats: PDF, DOCX, TXT",
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                  SizedBox(height: 15),
+                                  ElevatedButton(
+                                    onPressed: () => provider.pickFiles(),
+                                    style: ElevatedButton.styleFrom(
+                                      foregroundColor: Colors.black,
+                                      backgroundColor: Colors.white,
+                                      side: BorderSide(
+                                        color: Colors.grey.shade400,
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                    child: Text("Browse Files"),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
+
+                          // Show selected files
+                          if (provider.selectedFiles.isNotEmpty) ...[
+                            SizedBox(height: 20),
+                            Text(
+                              "Selected Files (${provider.selectedFiles.length})",
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(height: 10),
+                            ...provider.selectedFiles.asMap().entries.map((
+                              entry,
+                            ) {
+                              final index = entry.key;
+                              final file = entry.value;
+                              return Container(
+                                margin: EdgeInsets.only(bottom: 8),
+                                padding: EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      _getFileIcon(file.path),
+                                      color: Colors.blue,
+                                    ),
+                                    SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            file.path.split('/').last,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          Text(
+                                            '${provider.getFileExtension(file)} • ${provider.getFileSize(file)}',
+                                            style: TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () =>
+                                          provider.removeFile(index),
+                                      icon: Icon(
+                                        Icons.close,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+
+                            SizedBox(height: 10),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Total: ${provider.getTotalFilesSize()}',
+                                  style: TextStyle(fontWeight: FontWeight.w500),
+                                ),
+                                TextButton(
+                                  onPressed: () =>
+                                      provider.clearSelectedFiles(),
+                                  child: Text('Clear All'),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
-                      ),
-                    ),
+                      );
+                    },
                   ),
 
                   SizedBox(height: 30),
@@ -246,37 +357,88 @@ class _TimelineExtractorState extends State<TimelineExtractor> {
 
                   SizedBox(height: 30),
 
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _extractedFuture = _simulateExtraction();
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
+                  Consumer<TimelineExtractorProvider>(
+                    builder: (context, provider, child) {
+                      return Align(
+                        alignment: Alignment.centerRight,
+                        child: ElevatedButton(
+                          onPressed: provider.isExtracting
+                              ? null
+                              : () async {
+                                  if (provider.selectedFiles.isNotEmpty) {
+                                    await provider
+                                        .processFilesAndExtractTimeline();
+                                  } else if (_textController.text
+                                      .trim()
+                                      .isNotEmpty) {
+                                    await provider.extractTimelineFromText(
+                                      _textController.text,
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Please select files or enter text',
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                          ),
+                          child: provider.isExtracting
+                              ? Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text("Extracting..."),
+                                  ],
+                                )
+                              : Text("Extract Timeline"),
                         ),
-                      ),
-                      child: Text("Extract Timeline"),
-                    ),
+                      );
+                    },
                   ),
 
                   SizedBox(height: 30),
 
-                  FutureBuilder<List<Map<String, dynamic>>>(
-                    future: _extractedFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
+                  Consumer<TimelineExtractorProvider>(
+                    builder: (context, provider, child) {
+                      // Show error message if any
+                      if (provider.errorMessage != null) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(provider.errorMessage!),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          provider.clearError();
+                        });
+                      }
+
+                      if (provider.isLoading) {
                         return Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        return Text("Error: ${snapshot.error}");
-                      } else if (snapshot.hasData &&
-                          snapshot.data!.isNotEmpty) {
+                      }
+
+                      if (provider.extractedEvents.isNotEmpty) {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -288,7 +450,7 @@ class _TimelineExtractorState extends State<TimelineExtractor> {
                               ),
                             ),
                             SizedBox(height: 20),
-                            _buildTimeline(snapshot.data!),
+                            _buildTimeline(provider.extractedEvents),
                             _buildExportButton(),
                           ],
                         );
