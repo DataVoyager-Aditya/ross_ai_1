@@ -10,7 +10,7 @@ class TimelineExtractorProvider extends ChangeNotifier {
   List<Map<String, dynamic>> _recentCases = [];
   String? _currentCaseId;
   String? _errorMessage;
-  List<File> _selectedFiles = [];
+  List<dynamic> _selectedFiles = [];
 
   // Getters
   bool get isLoading => _isLoading;
@@ -19,7 +19,7 @@ class TimelineExtractorProvider extends ChangeNotifier {
   List<Map<String, dynamic>> get recentCases => _recentCases;
   String? get currentCaseId => _currentCaseId;
   String? get errorMessage => _errorMessage;
-  List<File> get selectedFiles => _selectedFiles;
+  List<dynamic> get selectedFiles => _selectedFiles;
 
   // Clear error message
   void clearError() {
@@ -34,8 +34,7 @@ class TimelineExtractorProvider extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      final files = await TimelineExtractorService.pickMultipleFiles();
-      _selectedFiles = files;
+      _selectedFiles = await TimelineExtractorService.pickMultipleFiles();
 
       _isLoading = false;
       notifyListeners();
@@ -277,9 +276,16 @@ class TimelineExtractorProvider extends ChangeNotifier {
   }
 
   // Get file size in readable format
-  String getFileSize(File file) {
+  String getFileSize(dynamic file) {
     try {
-      final bytes = file.lengthSync();
+      int bytes;
+      if (file is File) {
+        bytes = file.lengthSync();
+      } else {
+        // For web files, use the bytes property
+        bytes = file.bytes?.length ?? 0;
+      }
+
       if (bytes < 1024) {
         return '$bytes B';
       }
@@ -293,15 +299,26 @@ class TimelineExtractorProvider extends ChangeNotifier {
   }
 
   // Get file extension
-  String getFileExtension(File file) {
-    final fileName = file.path.split('/').last;
+  String getFileExtension(dynamic file) {
+    String fileName;
+    if (file is File) {
+      fileName = file.path.split('/').last;
+    } else {
+      fileName = file.name;
+    }
     final parts = fileName.split('.');
     return parts.length > 1 ? parts.last.toUpperCase() : 'Unknown';
   }
 
   // Validate file format
-  bool isValidFileFormat(File file) {
-    final extension = file.path.split('.').last.toLowerCase();
+  bool isValidFileFormat(dynamic file) {
+    String fileName;
+    if (file is File) {
+      fileName = file.path;
+    } else {
+      fileName = file.name;
+    }
+    final extension = fileName.split('.').last.toLowerCase();
     return ['pdf', 'docx', 'txt'].contains(extension);
   }
 
@@ -311,7 +328,18 @@ class TimelineExtractorProvider extends ChangeNotifier {
 
     int totalBytes = 0;
     for (final file in _selectedFiles) {
-      totalBytes += file.lengthSync();
+      if (file is File) {
+        totalBytes += file.lengthSync();
+      } else {
+        final dynamic len = file.bytes?.length;
+        if (len is int) {
+          totalBytes += len;
+        } else if (len is num) {
+          totalBytes += len.toInt();
+        } else {
+          totalBytes += 0;
+        }
+      }
     }
 
     if (totalBytes < 1024) {

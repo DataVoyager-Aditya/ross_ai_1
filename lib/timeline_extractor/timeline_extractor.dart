@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ross_ai_1/timeline_extractor/components/extracted_events_design.dart';
@@ -90,8 +91,17 @@ class _TimelineExtractorState extends State<TimelineExtractor> {
     );
   }
 
-  IconData _getFileIcon(String filePath) {
-    final extension = filePath.split('.').last.toLowerCase();
+  IconData _getFileIcon(dynamic file) {
+    String fileName;
+    if (file is String) {
+      fileName = file;
+    } else if (file is File) {
+      fileName = file.path;
+    } else {
+      fileName = file.name;
+    }
+
+    final extension = fileName.split('.').last.toLowerCase();
     switch (extension) {
       case 'pdf':
         return Icons.picture_as_pdf;
@@ -283,7 +293,7 @@ class _TimelineExtractorState extends State<TimelineExtractor> {
                                 child: Row(
                                   children: [
                                     Icon(
-                                      _getFileIcon(file.path),
+                                      _getFileIcon(file),
                                       color: Colors.blue,
                                     ),
                                     SizedBox(width: 12),
@@ -293,7 +303,9 @@ class _TimelineExtractorState extends State<TimelineExtractor> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            file.path.split('/').last,
+                                            file is File
+                                                ? file.path.split('/').last
+                                                : file.name,
                                             style: TextStyle(
                                               fontWeight: FontWeight.w500,
                                             ),

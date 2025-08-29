@@ -11,12 +11,12 @@ import 'storage_service.dart';
 class FirebaseAuthProvider with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: [
-      'email',
-      'profile',
-      'https://www.googleapis.com/auth/userinfo.profile',
-      'https://www.googleapis.com/auth/userinfo.email',
-    ],
+    // scopes: [
+    //   'email',
+    //   'profile',
+    //   'https://www.googleapis.com/auth/userinfo.profile',
+    //   'https://www.googleapis.com/auth/userinfo.email',
+    // ],
     clientId: kIsWeb
         ? '1042853929889-33qo9f34dgraulecq5k591npl2pejt1m.apps.googleusercontent.com'
         : null,
