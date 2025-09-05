@@ -1,7 +1,10 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import '../variables/profile.dart';
-import '../variables/extracted_jurisdiction.dart';
+import 'package:provider/provider.dart';
 import '../utils/loading_animation.dart';
+import '../variables/extracted_jurisdiction.dart';
+import '../variables/profile.dart';
+import 'provider/jurisdiction_provider.dart';
 
 class JurisdictionChecker extends StatefulWidget {
   const JurisdictionChecker({super.key});
@@ -14,34 +17,35 @@ class _JurisdictionCheckerState extends State<JurisdictionChecker> {
   final TextEditingController _textController = TextEditingController();
   String? _selectedCaseType;
   final List<String> _caseTypes = ['Civil', 'Criminal', 'Corporate', 'Family'];
-  late Future<List<String>> _extractedFuture;
 
-  Future<List<String>> _simulateExtraction() async {
-    await Future.delayed(Duration(seconds: 2)); // simulate delay
-    return extractedJurisdiction;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _extractedFuture = Future.value([]); // initially empty
-  }
-
-  Widget _checkJurisdiction(List<String> jurisdictions) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: jurisdictions.map((jurisdiction) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0),
-        child: Text(
-          jurisdiction,
-          style: TextStyle(fontSize: 16),
-        ),
+  Future<void> _pickFile(BuildContext context) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+      withData: true,
+    );
+    if (result != null && result.files.isNotEmpty) {
+      final provider = Provider.of<JurisdictionProvider>(
+        context,
+        listen: false,
       );
-    }).toList(),
-  );
-}
+      await provider.pickFile(result.files.first);
+    }
+  }
 
+  Future<void> _extractText(BuildContext context) async {
+    final provider = Provider.of<JurisdictionProvider>(context, listen: false);
+    if (provider.selectedFile != null) {
+      await provider.extractTextFromPdf(provider.selectedFile);
+    }
+  }
+
+  Future<void> _analyzeCase(BuildContext context) async {
+    final provider = Provider.of<JurisdictionProvider>(context, listen: false);
+    if (provider.extractedText != null && provider.extractedText!.isNotEmpty) {
+      await provider.analyzeCase(provider.extractedText!);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,15 +65,12 @@ class _JurisdictionCheckerState extends State<JurisdictionChecker> {
                 children: [
                   GestureDetector(
                     onTap: () {
-                  Navigator.pushNamed(context, '/home');
-
+                      Navigator.pushNamed(context, '/home');
                     },
-                    child: Container(
-                      child: Image.asset(
-                        "assets/images/logo1.png",
-                        height: 80,
-                        fit: BoxFit.contain,
-                      ),
+                    child: Image.asset(
+                      "assets/images/logo1.png",
+                      height: 80,
+                      fit: BoxFit.contain,
                     ),
                   ),
                   Row(
@@ -81,7 +82,11 @@ class _JurisdictionCheckerState extends State<JurisdictionChecker> {
                           Navigator.pop(context); // dismiss loader
                           Navigator.pushNamed(context, '/home');
                         },
-                        child: const Text("Dashboard", style: TextStyle(fontSize: 15))),
+                        child: const Text(
+                          "Dashboard",
+                          style: TextStyle(fontSize: 15),
+                        ),
+                      ),
                       const SizedBox(width: 35),
                       GestureDetector(
                         onTap: () async {
@@ -131,178 +136,159 @@ class _JurisdictionCheckerState extends State<JurisdictionChecker> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1000),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24.0,
-                vertical: 35.0,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Jurisdiction Check",
-                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+      body: Consumer<JurisdictionProvider>(
+        builder: (context, provider, child) {
+          if (provider == null) return SizedBox.shrink();
+          return SingleChildScrollView(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24.0,
+                    vertical: 35.0,
                   ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    "Determine the appropriate court for your case",
-                    style: TextStyle(fontSize: 15, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 30),
-
-                  // Browse Files Container
-                  Container(
-                    width: double.infinity,
-                    height: 160,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey, width: 1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            "Drag and drop or paste your document here",
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 5),
-                          const Text(
-                            "Supported formats: PDF, DOCX, TXT",
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                          const SizedBox(height: 15),
-                          ElevatedButton(
-                            onPressed: () {
-                              // Implement file picker here
-                            },
-                            style: ElevatedButton.styleFrom(
-                              foregroundColor: Colors.black,
-                              backgroundColor: Colors.white,
-                              side: BorderSide(color: Colors.grey.shade400),
-                              elevation: 0,
-                            ),
-                            child: const Text("Browse Files"),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 30),
-
-                  // TextField
-                  TextField(
-                    controller: _textController,
-                    maxLines: 5,
-                    decoration: InputDecoration(
-                      hintText: "Paste case summary here",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Dropdown for Case Type
-                  DropdownButtonFormField<String>(
-                    value: _selectedCaseType,
-                    items: _caseTypes.map((String type) {
-                      return DropdownMenuItem<String>(
-                        value: type,
-                        child: Text(type),
-                      );
-                    }).toList(),
-                    decoration: InputDecoration(
-                      hintText: "Select Case Type",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedCaseType = value!;
-                      });
-                    },
-                  ),
-
-                  const SizedBox(height: 30),
-
-                  // Check Jurisdiction Button
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _extractedFuture = _simulateExtraction();
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Jurisdiction Check",
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      child: Text("Check Jurisdiction"),
-                    ),
-                  ),
-                  
-
-                  SizedBox(height: 30),
-
-                  FutureBuilder<List<String>>(
-                    future: _extractedFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        return Text("Error: ${snapshot.error}");
-                      } else if (snapshot.hasData &&
-                          snapshot.data!.isNotEmpty) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      const SizedBox(height: 10),
+                      const Text(
+                        "Determine the appropriate court for your case",
+                        style: TextStyle(fontSize: 15, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 30),
+                      Container(
+                        width: double.infinity,
+                        height: 160,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey, width: 1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                "Drag and drop or pick your PDF document",
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 5),
+                              const Text(
+                                "Supported format: PDF",
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                              const SizedBox(height: 15),
+                              ElevatedButton(
+                                onPressed: provider.isLoading
+                                    ? null
+                                    : () => _pickFile(context),
+                                style: ElevatedButton.styleFrom(
+                                  foregroundColor: Colors.black,
+                                  backgroundColor: Colors.white,
+                                  side: BorderSide(color: Colors.grey.shade400),
+                                  elevation: 0,
+                                ),
+                                child: const Text("Browse Files"),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (provider.selectedFile != null) ...[
+                        const SizedBox(height: 20),
+                        Row(
                           children: [
-                            Text(
-                              "Reasoning",
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
+                            Icon(Icons.picture_as_pdf, color: Colors.blue),
+                            const SizedBox(width: 8),
+                            Expanded(child: Text(provider.selectedFile.name)),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: provider.isLoading
+                              ? null
+                              : () => _extractText(context),
+                          child: const Text('Extract Text from PDF'),
+                        ),
+                      ],
+                      if (provider.extractedText != null &&
+                          provider.extractedText!.isNotEmpty) ...[
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Extracted Text:',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            provider.extractedText!,
+                            maxLines: 8,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: provider.isLoading
+                              ? null
+                              : () => _analyzeCase(context),
+                          child: provider.isLoading
+                              ? const CircularProgressIndicator()
+                              : const Text('Analyze Jurisdiction'),
+                        ),
+                      ],
+                      const SizedBox(height: 30),
+                      if (provider.errorText != null)
+                        Text(
+                          provider.errorText!,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      if (provider.isLoading)
+                        const Center(child: CircularProgressIndicator()),
+                      if (provider.suggestions.isNotEmpty) ...[
+                        const Text(
+                          'Jurisdiction Suggestions',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        ...provider.suggestions.map(
+                          (s) => Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            child: ListTile(
+                              title: Text(s.jurisdiction),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Court Type: ${s.courtType}'),
+                                  const SizedBox(height: 4),
+                                  Text('Reasoning: ${s.reasoning}'),
+                                ],
                               ),
                             ),
-                            SizedBox(height: 20),
-                            _checkJurisdiction(snapshot.data!),
-                          ],
-                        );
-                      } else {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Reasoning",
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 20),
-                            Text("No cases extracted yet."),
-                          ],
-                        );
-                      }
-                    },
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

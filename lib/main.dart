@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:ross_ai_1/auth/provider/auth_provider.dart';
 import 'package:ross_ai_1/firebase_options.dart';
 import 'package:ross_ai_1/jurisdiction_checker/jurisdiction_checker.dart';
+import 'package:ross_ai_1/jurisdiction_checker/provider/jurisdiction_provider.dart';
 import 'package:ross_ai_1/landing/landing_page.dart';
 import 'package:ross_ai_1/timeline_extractor/provider/timeline_extractor_provider.dart';
 import './home/home_page.dart';
@@ -29,6 +30,7 @@ Future<void> main() async {
             ChangeNotifierProvider(
               create: (context) => TimelineExtractorProvider(),
             ),
+            ChangeNotifierProvider(create: (context) => JurisdictionProvider()),
           ],
           child: const MyApp(),
         ),
