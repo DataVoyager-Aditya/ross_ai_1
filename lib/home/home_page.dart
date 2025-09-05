@@ -8,7 +8,6 @@ import 'components/recent_cases.dart';
 import 'components/faq.dart';
 import '../utils/loading_animation.dart';
 
-
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
   @override
@@ -29,11 +28,11 @@ class HomePage extends StatelessWidget {
                 children: [
                   GestureDetector(
                     onTap: () async {
-                          showLegalLoader(context);
-                          await Future.delayed(Duration(seconds: 4));
-                          Navigator.pop(context); // dismiss loader
-                          Navigator.pushNamed(context, '/home');
-                        },
+                      showLegalLoader(context);
+                      await Future.delayed(Duration(seconds: 2));
+                      Navigator.pop(context); // dismiss loader
+                      Navigator.pushNamed(context, '/home');
+                    },
                     child: Image.asset(
                       "assets/images/logo1.png",
                       height: 80,
@@ -45,11 +44,11 @@ class HomePage extends StatelessWidget {
                     width: 48,
                     child: GestureDetector(
                       onTap: () async {
-                          showLegalLoader(context);
-                          await Future.delayed(Duration(seconds: 4));
-                          Navigator.pop(context); // dismiss loader
-                          Navigator.pushNamed(context, '/profile');
-                        },
+                        showLegalLoader(context);
+                        await Future.delayed(Duration(seconds: 2));
+                        Navigator.pop(context); // dismiss loader
+                        Navigator.pushNamed(context, '/profile');
+                      },
                       child: CircleAvatar(
                         radius: 24,
                         backgroundImage: NetworkImage(
@@ -92,7 +91,7 @@ class HomePage extends StatelessWidget {
                       GestureDetector(
                         onTap: () async {
                           showLegalLoader(context);
-                          await Future.delayed(Duration(seconds: 4));
+                          await Future.delayed(Duration(seconds: 2));
                           Navigator.pop(context); // dismiss loader
                           Navigator.pushNamed(context, '/timeline');
                         },
@@ -129,7 +128,8 @@ class HomePage extends StatelessWidget {
                         },
                         child: FeaturesGrid(
                           widgetName: "Precedent Finder",
-                          widgetDescription: "Find relevant case laws instantly",
+                          widgetDescription:
+                              "Find relevant case laws instantly",
                           widgetImage:
                               "https://lh3.googleusercontent.com/aida-public/AB6AXuCnK9rkEsVXDXTbzaE9qMnUCEXqd3y4vRFen0WFYL2wzh2nqOFoIwVIPfwMfACPcvGv799_h6mtsxhgQOnh386ur-YFwwP4h6rqjki9N-EQ-7wP-JdePjTKH-pcNNeX57ptvvTgQ0S1cxTgqLDlRgaE9JkTgySO_mgZ0L2gjs4-N3KvLGRMfWeye9LCwL7PCXBXr48HT1uiIlos0uH_wEj-Z8-XFtHY22R3EWRkJ2b5veN9NSkm4C2TWIMSF-X5hLXFw5pg1d6iqbA",
                         ),

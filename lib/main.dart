@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:ross_ai_1/auth/provider/auth_provider.dart';
 import 'package:ross_ai_1/firebase_options.dart';
 import 'package:ross_ai_1/jurisdiction_checker/jurisdiction_checker.dart';
+import 'package:ross_ai_1/landing/landing_page.dart';
 import 'package:ross_ai_1/timeline_extractor/provider/timeline_extractor_provider.dart';
 import './home/home_page.dart';
 import "package:ross_ai_1/profile/profile_page.dart";
@@ -59,13 +60,13 @@ class MyApp extends StatelessWidget {
         ),
       ),
       debugShowCheckedModeBanner: false,
-      title: "Ross_AI",
+      title: "Ross AI",
       home: Consumer<FirebaseAuthProvider>(
         builder: (context, authProvider, child) {
           if (authProvider.currentUser != null) {
             return const HomePage();
           } else {
-            return const LoginPage();
+            return const LandingPage();
           }
         },
       ),

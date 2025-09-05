@@ -10,17 +10,6 @@ import 'storage_service.dart';
 
 class FirebaseAuthProvider with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    // scopes: [
-    //   'email',
-    //   'profile',
-    //   'https://www.googleapis.com/auth/userinfo.profile',
-    //   'https://www.googleapis.com/auth/userinfo.email',
-    // ],
-    clientId: kIsWeb
-        ? '1042853929889-33qo9f34dgraulecq5k591npl2pejt1m.apps.googleusercontent.com'
-        : null,
-  );
   final UserService _userService = UserService();
   final StorageService _storageService = StorageService();
 
@@ -231,77 +220,62 @@ class FirebaseAuthProvider with ChangeNotifier {
   }
 
   // Google Sign In
+
+  String? _accessToken;
+  String? get accessToken => _accessToken;
+
   Future<User?> signInWithGoogle() async {
     try {
       _isLoading = true;
       _errorMessage = null;
       notifyListeners();
 
-      debugPrint('Starting Google Sign-In process...');
+      final GoogleAuthProvider googleProvider = GoogleAuthProvider();
 
-      // Sign out from Google first to ensure fresh sign-in
-      try {
-        await _googleSignIn.signOut();
-        debugPrint('Signed out from Google successfully');
-      } catch (e) {
-        debugPrint('Error signing out from Google: $e');
-        // Continue anyway
-      }
-
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        debugPrint('Google Sign-In was cancelled by user');
-        _isLoading = false;
-        notifyListeners();
-        return null;
-      }
-
-      debugPrint('Google Sign-In successful for: ${googleUser.email}');
-
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
+      final UserCredential userCredential = await _auth.signInWithPopup(
+        googleProvider,
       );
-
-      debugPrint('Creating Firebase credential...');
-
-      UserCredential userCredential = await _auth.signInWithCredential(
-        credential,
-      );
-
-      debugPrint('Firebase authentication successful');
 
       if (userCredential.user != null) {
-        // Check if user profile exists, if not create one
-        bool profileExists = await _userService.userProfileExists(
-          userCredential.user!.uid,
-        );
+        // final idToken = await userCredential.user!.getIdToken();
+        // print("User ID Token: $idToken");
 
-        if (!profileExists) {
-          debugPrint('Creating new user profile for Google user');
-          await _userService.createUserProfile(
-            uid: userCredential.user!.uid,
-            email: userCredential.user!.email ?? '',
-            role: 'Legal Assistant', // Default role
-            name:
-                userCredential.user!.displayName ??
-                googleUser.displayName ??
-                'User',
-            profilePhoto:
-                userCredential.user!.photoURL ?? googleUser.photoUrl ?? '',
-            isGuest: false,
-          );
+        final OAuthCredential? credential =
+            userCredential.credential as OAuthCredential?;
+        if (credential != null && credential.accessToken != null) {
+          _accessToken = credential.accessToken;
+          notifyListeners();
+          if (userCredential.user != null) {
+            // Check if user profile exists, if not create one
+            bool profileExists = await _userService.userProfileExists(
+              userCredential.user!.uid,
+            );
+
+            if (!profileExists) {
+              debugPrint('Creating new user profile for Google user');
+              await _userService.createUserProfile(
+                uid: userCredential.user!.uid,
+                email: userCredential.user!.email ?? '',
+                role: 'Legal Assistant', // Default role
+                name: userCredential.user!.displayName,
+                profilePhoto: userCredential.user!.photoURL,
+                isGuest: false,
+              );
+            } else {
+              debugPrint('Updating last login for existing user');
+              // Update last login
+              await _userService.updateLastLogin(userCredential.user!.uid);
+            }
+          }
+          return userCredential.user;
         } else {
-          debugPrint('Updating last login for existing user');
-          // Update last login
-          await _userService.updateLastLogin(userCredential.user!.uid);
+          print("Failed to get Google API Access Token from credential.");
+          return null;
         }
+      } else {
+        print("Google Sign-In failed or user cancelled.");
+        return null;
       }
-
-      debugPrint('Google Sign-In completed successfully');
-      return userCredential.user;
     } catch (e) {
       debugPrint('Error in Google Sign-In: $e');
       _errorMessage = _getErrorMessage(e.toString());
@@ -346,7 +320,13 @@ class FirebaseAuthProvider with ChangeNotifier {
   // Sign out
   Future<void> signOut() async {
     try {
-      await _googleSignIn.signOut();
+      await GoogleSignIn.instance.initialize(
+        clientId: const String.fromEnvironment(
+          '1042853929889-33qo9f34dgraulecq5k591npl2pejt1m.apps.googleusercontent.com',
+        ),
+      );
+      await GoogleSignIn.instance.signOut();
+      await GoogleSignIn.instance.disconnect();
       await _auth.signOut();
       await _saveUserSession(null);
     } catch (e) {

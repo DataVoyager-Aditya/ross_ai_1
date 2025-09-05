@@ -2,14 +2,36 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:http/http.dart' as http;
-import 'package:file_picker/file_picker.dart';
-import 'package:path/path.dart' as path;
 import 'package:syncfusion_flutter_pdf/pdf.dart';
-import 'package:archive/archive.dart';
-// ignore: unused_import
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as path;
+
+class TimelineEvent {
+  final String? date;
+  final String? startDate;
+  final String? endDate;
+  final String datePrecision;
+  final String title;
+  final String whatHappened;
+
+  TimelineEvent({
+    required this.date,
+    required this.startDate,
+    required this.endDate,
+    required this.datePrecision,
+    required this.title,
+    required this.whatHappened,
+  });
+
+  factory TimelineEvent.fromJson(Map<String, dynamic> j) => TimelineEvent(
+    date: j['date'],
+    startDate: j['start_date'],
+    endDate: j['end_date'],
+    datePrecision: j['date_precision'] ?? 'day',
+    title: j['title'] ?? '',
+    whatHappened: j['what_happened'] ?? '',
+  );
+}
 
 class TimelineExtractorService {
   // Gemini API
@@ -50,368 +72,161 @@ class TimelineExtractorService {
     }
   }
 
-  // Extract text from different file formats
-  static Future<String> extractTextFromFile(File file) async {
+  // Extract text from PDF using Syncfusion
+  static Future<String> extractTextFromPdf(dynamic file) async {
     try {
-      final extension = path.extension(file.path).toLowerCase();
-
-      switch (extension) {
-        case '.txt':
-          return await _extractTextFromTxt(file);
-        case '.pdf':
-          return await _extractTextFromPdfBytes(await file.readAsBytes());
-        case '.docx':
-          return await _extractTextFromDocxBytes(await file.readAsBytes());
-        default:
-          throw Exception('Unsupported file format: $extension');
+      Uint8List bytes;
+      if (file is File) {
+        bytes = await file.readAsBytes();
+      } else {
+        bytes = file.bytes as Uint8List;
       }
-    } catch (e) {
-      throw Exception('Failed to extract text from file: $e');
-    }
-  }
-
-  // Extract text from TXT file
-  static Future<String> _extractTextFromTxt(File file) async {
-    try {
-      return await file.readAsString();
-    } catch (e) {
-      throw Exception('Failed to read TXT file: $e');
-    }
-  }
-
-  // Extract text from PDF bytes
-  static Future<String> _extractTextFromPdfBytes(Uint8List bytes) async {
-    try {
       final PdfDocument document = PdfDocument(inputBytes: bytes);
-      final PdfTextExtractor extractor = PdfTextExtractor(document);
-      final String text = extractor.extractText();
-      document.dispose();
-      return text;
+      return PdfTextExtractor(document).extractText();
     } catch (e) {
       throw Exception('Failed to extract text from PDF: $e');
     }
   }
 
-  // Extract text from DOCX bytes
-  static Future<String> _extractTextFromDocxBytes(Uint8List bytes) async {
-    try {
-      final archive = ZipDecoder().decodeBytes(bytes);
-
-      // Find the document.xml file in the DOCX
-      final documentXml = archive.findFile('word/document.xml');
-      if (documentXml == null) {
-        throw Exception('Could not find document.xml in DOCX file');
-      }
-
-      final xmlContent = utf8.decode(documentXml.content as List<int>);
-
-      // Simple XML parsing to extract text
-      // Remove XML tags and extract text content
-      final text = xmlContent
-          .replaceAll(RegExp(r'<[^>]*>'), ' ')
-          .replaceAll(RegExp(r'\s+'), ' ')
-          .trim();
-
-      return text;
-    } catch (e) {
-      throw Exception('Failed to extract text from DOCX: $e');
-    }
-  }
-
-  // Extract text from raw bytes (web PlatformFile)
-  static Future<String> extractTextFromBytes(
-    Uint8List bytes,
-    String fileName,
-  ) async {
-    final extension = path.extension(fileName).toLowerCase();
-    switch (extension) {
-      case '.txt':
-        return utf8.decode(bytes);
-      case '.pdf':
-        return _extractTextFromPdfBytes(bytes);
-      case '.docx':
-        return _extractTextFromDocxBytes(bytes);
-      default:
-        throw Exception('Unsupported file format: $extension');
-    }
-  }
-
-  // Pick multiple files (web-compatible)
-  static Future<List<dynamic>> pickMultipleFiles() async {
-    try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf', 'docx', 'txt'],
-        allowMultiple: true,
-        withData: true, // This ensures we get bytes for web
-      );
-
-      if (result != null) {
-        return result.files;
-      }
-
-      return [];
-    } catch (e) {
-      throw Exception('Failed to pick files: $e');
-    }
-  }
-
-  // Generate unique case ID
-  static String generateCaseId() {
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final random = (1000 + (DateTime.now().microsecond % 9000)).toString();
-    return 'case_${timestamp}_$random';
-  }
-
-  // Extract timeline from text using Gemini directly
-  static Future<Map<String, dynamic>> extractTimelineFromText(
+  // Send extracted text to Gemini API for timeline extraction
+  static Future<List<TimelineEvent>> extractTimelineFromText(
     String text,
-    String userId, {
-    String? caseId,
-  }) async {
+  ) async {
     try {
       if (text.trim().isEmpty) {
         throw Exception('Text content cannot be empty');
       }
       if (_geminiApiKey.isEmpty) {
-        throw Exception(
-          'Missing GEMINI_API_KEY (use --dart-define=GEMINI_API_KEY=...)',
-        );
+        throw Exception('Missing GEMINI_API_KEY');
       }
 
-      final finalCaseId = caseId ?? generateCaseId();
+      Map<String, dynamic> timelineSchema = {
+        'type': 'object',
+        'properties': {
+          'events': {
+            'type': 'array',
+            'items': {
+              'type': 'object',
+              'properties': {
+                'date': {'type': 'string', 'nullable': true},
+                'start_date': {'type': 'string', 'nullable': true},
+                'end_date': {'type': 'string', 'nullable': true},
+                'date_precision': {
+                  'type': 'string',
+                  'enum': ['day', 'month', 'year', 'range'],
+                },
+                'title': {'type': 'string'},
+                'what_happened': {'type': 'string'},
+              },
+              'required': ['title', 'what_happened', 'date_precision'],
+            },
+          },
+        },
+        'required': ['events'],
+      };
 
-      final prompt =
-          'Extract chronological legal events from the given case text. Return ONLY valid JSON array of objects with keys: title, date (YYYY-MM-DD), description. Case text (truncate if needed):\n${text.substring(0, text.length > 12000 ? 12000 : text.length)}';
+      const String kSystemInstruction = r'''
+You are a case-file timeline extractor.
 
+TASK
+- From the provided case text, extract only entries that mention a concrete date (or a date range).
+- For each date, return what happened on that date (short title and one-line detail).
+- Output strictly valid JSON matching the required schema. No extra text.
+
+RULES
+1) Use ONLY dates explicitly present in the text (or clear relative dates resolvable with provided reference_date/timezone). No guesses.
+2) Normalize dates to ISO 8601:
+   - Single day → "date": "YYYY-MM-DD"
+   - Month-only → "date": "YYYY-MM-01", "date_precision": "month"
+   - Year-only → "date": "YYYY-01-01", "date_precision": "year"
+   - Ranges → use "start_date" and "end_date" (both ISO), set "date_precision": "range"
+3) Keep "title" ≤ 80 chars; "what_happened" ≤ 240 chars; be factual and concise.
+4) If multiple events share the same date, include separate items.
+5) If nothing is extractable, return {"events": []}.
+
+OUTPUT JSON SCHEMA (exact keys)
+{
+  "events": [
+    {
+      "date": "YYYY-MM-DD|null",
+      "start_date": "YYYY-MM-DD|null",
+      "end_date": "YYYY-MM-DD|null",
+      "date_precision": "day|month|year|range",
+      "title": "string",
+      "what_happened": "string"
+    }
+  ]
+}
+''';
+      final prompt = '''
+          Extract chronological legal events from the given case text. 
+          Case text (truncate if needed):\n${text.substring(0, text.length > 12000 ? 12000 : text.length)}''';
+
+      final payload = {
+        // system instruction
+        'systemInstruction': {
+          'parts': [
+            {'text': kSystemInstruction},
+          ],
+        },
+        // user message
+        'contents': [
+          {
+            'role': 'user',
+            'parts': [
+              {'text': prompt},
+            ],
+          },
+        ],
+        // force JSON + schema
+        'generationConfig': {
+          'response_mime_type': 'application/json',
+          'response_schema': timelineSchema,
+        },
+      };
       final resp = await http.post(
         Uri.parse('$_geminiUrl?key=$_geminiApiKey'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'contents': [
-            {
-              'parts': [
-                {'text': prompt},
-              ],
-            },
-          ],
-        }),
+        body: jsonEncode(payload),
       );
 
       if (resp.statusCode != 200) {
-        throw Exception('Gemini error: ${resp.body}');
+        throw Exception('Gemini error: ${resp.statusCode} ${resp.body}');
       }
 
-      final data = jsonDecode(resp.body) as Map<String, dynamic>;
-      final generatedText =
-          (data['candidates']?[0]?['content']?['parts']?[0]?['text']
-              as String?) ??
-          '';
+      final Map<String, dynamic> data = jsonDecode(resp.body);
 
-      final jsonMatch = RegExp(r"\[[\s\S]*\]").firstMatch(generatedText);
-      if (jsonMatch == null) {
-        throw Exception('No valid JSON found in model response');
-      }
-      final eventsParsed = jsonDecode(jsonMatch.group(0)!);
-      if (eventsParsed is! List) {
-        throw Exception('Extracted content is not an array');
+      // Most responses put the JSON string in candidates[0].content.parts[0].text
+      String jsonText = '';
+      try {
+        jsonText =
+            (data['candidates'][0]['content']['parts'][0]['text'] as String?) ??
+            '';
+      } catch (_) {
+        // fallback: try promptFeedback/errors
+        jsonText = '';
       }
 
-      final sanitizedEvents = eventsParsed.map<Map<String, dynamic>>((e) {
-        final map = Map<String, dynamic>.from(e as Map);
-        return {
-          'title': (map['title'] ?? 'Untitled').toString(),
-          'date': (map['date'] ?? 'Unknown').toString(),
-          'description': (map['description'] ?? '').toString(),
-        };
-      }).toList();
-
-      // Save to Firestore
-      await saveCaseToFirestore(
-        userId,
-        finalCaseId,
-        sanitizedEvents,
-        sanitizedEvents.isNotEmpty
-            ? sanitizedEvents.first['title']
-            : 'Untitled',
-      );
-
-      return {
-        'success': true,
-        'caseId': finalCaseId,
-        'events': sanitizedEvents,
-        'message': 'ok',
-      };
-    } catch (e) {
-      throw Exception('Timeline extraction failed: $e');
-    }
-  }
-
-  // Process multiple files and extract timeline (web-compatible)
-  static Future<Map<String, dynamic>> processFilesAndExtractTimeline(
-    List<dynamic> files,
-    String userId,
-  ) async {
-    try {
-      if (files.isEmpty) {
-        throw Exception('No files selected');
-      }
-
-      final caseId = generateCaseId();
-      String mergedText = '';
-
-      // Upload files and extract text locally
-      for (final file in files) {
-        try {
-          // upload
-          await uploadSelectedFileToStorage(file, userId, caseId);
-
-          // extract text
-          String fileName;
-          if (file is File) {
-            fileName = path.basename(file.path);
-            final fileText = await extractTextFromFile(file);
-            mergedText += '\n\n--- File: $fileName ---\n\n$fileText';
-          } else {
-            fileName = file.name as String;
-            final bytes = file.bytes as Uint8List?;
-            if (bytes == null) continue;
-            // save to temp for using existing extractors
-            // On web we cannot use dart:io File; skip local extraction for web
-            // Instead, do lightweight extraction for txt; PDFs/DOCX delegated to server normally.
-            final ext = path.extension(fileName).toLowerCase();
-            if (ext == '.txt') {
-              mergedText +=
-                  '\n\n--- File: $fileName ---\n\n${utf8.decode(bytes)}';
-            } else {
-              // Fallback: skip client-side parsing for complex formats on web
-              // and rely on Gemini to handle raw text absence.
-            }
-          }
-        } catch (_) {
-          // continue with other files
+      Map<String, dynamic> parsed;
+      try {
+        parsed = jsonDecode(jsonText) as Map<String, dynamic>;
+      } catch (_) {
+        // final fallback: try to extract first JSON block
+        final match = RegExp(r'(\{[\s\S]*\}|\[[\s\S]*\])').firstMatch(jsonText);
+        if (match != null) {
+          parsed = jsonDecode(match.group(0)!);
+        } else {
+          parsed = {'events': []};
         }
       }
 
-      if (mergedText.trim().isEmpty) {
-        throw Exception('No text could be extracted from files');
-      }
+      final events = (parsed['events'] as List<dynamic>? ?? [])
+          .map((e) => TimelineEvent.fromJson(e as Map<String, dynamic>))
+          .toList();
 
-      return await extractTimelineFromText(mergedText, userId, caseId: caseId);
+      return events;
     } catch (e) {
-      throw Exception('Failed to process files: $e');
-    }
-  }
-
-  // Get recent cases from Firestore
-  static Future<List<Map<String, dynamic>>> getRecentCases(
-    String userId,
-  ) async {
-    return getRecentCasesFromFirestore(userId);
-  }
-
-  // Get specific case from Firestore
-  static Future<Map<String, dynamic>> getCase(
-    String userId,
-    String caseId,
-  ) async {
-    try {
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .collection('cases')
-          .doc(caseId)
-          .get();
-      if (!doc.exists) return {};
-      return {'id': doc.id, ...doc.data()!};
-    } catch (e) {
-      throw Exception('Failed to get case: $e');
-    }
-  }
-
-  // Delete case from Firestore
-  static Future<bool> deleteCase(String userId, String caseId) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .collection('cases')
-          .doc(caseId)
-          .delete();
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .collection('recentCases')
-          .doc(caseId)
-          .delete();
-      return true;
-    } catch (e) {
-      throw Exception('Failed to delete case: $e');
-    }
-  }
-
-  // Save case to local Firestore (backup method)
-  static Future<void> saveCaseToFirestore(
-    String userId,
-    String caseId,
-    List<Map<String, dynamic>> events,
-    String title,
-  ) async {
-    try {
-      final caseData = {
-        'caseId': caseId,
-        'uploadedAt': FieldValue.serverTimestamp(),
-        'title': title,
-        'events': events,
-        'userId': userId,
-      };
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .collection('cases')
-          .doc(caseId)
-          .set(caseData);
-
-      // Save to recent cases
-      final recentCaseData = {
-        'caseId': caseId,
-        'title': title,
-        'uploadedAt': FieldValue.serverTimestamp(),
-        'eventCount': events.length,
-        'firstEventDate': events.isNotEmpty ? events.first['date'] : 'Unknown',
-      };
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .collection('recentCases')
-          .doc(caseId)
-          .set(recentCaseData);
-    } catch (e) {
-      throw Exception('Failed to save case to Firestore: $e');
-    }
-  }
-
-  // Get recent cases from local Firestore (backup method)
-  static Future<List<Map<String, dynamic>>> getRecentCasesFromFirestore(
-    String userId,
-  ) async {
-    try {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .collection('recentCases')
-          .orderBy('uploadedAt', descending: true)
-          .limit(5)
-          .get();
-
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        return {'id': doc.id, ...data};
-      }).toList();
-    } catch (e) {
-      throw Exception('Failed to get recent cases from Firestore: $e');
+      throw Exception('Timeline extraction failed: $e');
     }
   }
 }

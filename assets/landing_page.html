@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LexiChron - AI-Powered Legal Timeline Extraction</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .hero-section {
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://placehold.co/1600x900/1a202c/ffffff?text=Legal+Tech') no-repeat center center/cover;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Header / Navigation -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold text-gray-800">
+                <i class="fas fa-balance-scale mr-2 text-indigo-600"></i>LexiChron
+            </a>
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="#features" class="text-gray-600 hover:text-indigo-600 transition duration-300">Features</a>
+                <a href="#how-it-works" class="text-gray-600 hover:text-indigo-600 transition duration-300">How It
+                    Works</a>
+                <a href="#testimonials"
+                    class="text-gray-600 hover:text-indigo-600 transition duration-300">Testimonials</a>
+                <a href="#faq" class="text-gray-600 hover:text-indigo-600 transition duration-300">FAQ</a>
+            </div>
+            <div class="hidden md:flex items-center space-x-4">
+                <a href="#" class="text-gray-600 hover:text-indigo-600 font-medium">Log In</a>
+                <a href="#"
+                    class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-300 shadow-md">Sign
+                    Up</a>
+            </div>
+            <div class="md:hidden">
+                <button id="menu-btn" class="text-gray-600 focus:outline-none">
+                    <i class="fas fa-bars fa-lg"></i>
+                </button>
+            </div>
+        </nav>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="md:hidden hidden px-6 pb-4 space-y-2">
+            <a href="#features" class="block text-gray-600 hover:text-indigo-600 transition duration-300">Features</a>
+            <a href="#how-it-works" class="block text-gray-600 hover:text-indigo-600 transition duration-300">How It
+                Works</a>
+            <a href="#testimonials"
+                class="block text-gray-600 hover:text-indigo-600 transition duration-300">Testimonials</a>
+            <a href="#faq" class="block text-gray-600 hover:text-indigo-600 transition duration-300">FAQ</a>
+            <div class="border-t my-2"></div>
+            <a href="#" class="block text-gray-600 hover:text-indigo-600 font-medium">Log In</a>
+            <a href="#"
+                class="block bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-300 shadow-md text-center">Sign
+                Up</a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <main>
+        <section class="hero-section text-white py-24 sm:py-32">
+            <div class="container mx-auto px-6 text-center">
+                <h1 class="text-4xl md:text-6xl font-extrabold leading-tight mb-4">AI-Powered Timelines from Your Case
+                    Files</h1>
+                <p class="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-8">
+                    LexiChron intelligently analyzes your legal documents to automatically extract key events and build
+                    interactive case timelines. Save hundreds of hours and gain critical insights instantly.
+                </p>
+                <a href="#"
+                    class="bg-indigo-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-indigo-700 transition duration-300 shadow-lg transform hover:scale-105">Get
+                    Started for Free</a>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Revolutionize Your Case Preparation</h2>
+                    <p class="text-gray-600 mt-4 max-w-2xl mx-auto">From document analysis to jurisdiction checks, our
+                        AI tools are designed to give you a competitive edge.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Feature 1 -->
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
+                        <div class="text-indigo-600 mb-4">
+                            <i class="fas fa-file-invoice fa-3x"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Automated Timeline Extraction</h3>
+                        <p class="text-gray-600">Upload your case files, and our AI will instantly identify and organize
+                            all crucial dates and events into a clear, interactive timeline.</p>
+                    </div>
+                    <!-- Feature 2 -->
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
+                        <div class="text-indigo-600 mb-4">
+                            <i class="fas fa-gavel fa-3x"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">AI Precedent Finder <span
+                                class="text-sm text-indigo-500 font-semibold ml-2">Coming Soon</span></h3>
+                        <p class="text-gray-600">Leverage AI to search thousands of legal documents and find relevant
+                            precedents that strengthen your case arguments.</p>
+                    </div>
+                    <!-- Feature 3 -->
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
+                        <div class="text-indigo-600 mb-4">
+                            <i class="fas fa-map-marked-alt fa-3x"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Jurisdiction Conflict Checker <span
+                                class="text-sm text-indigo-500 font-semibold ml-2">Coming Soon</span></h3>
+                        <p class="text-gray-600">Our AI will analyze your case to identify potential jurisdiction
+                            conflicts, saving you from costly and time-consuming errors.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works Section -->
+        <section id="how-it-works" class="py-20 bg-gray-50">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Get Started in 3 Simple Steps</h2>
+                    <p class="text-gray-600 mt-4 max-w-2xl mx-auto">Our intuitive platform makes it easy to get up and
+                        running in minutes.</p>
+                </div>
+                <div class="flex flex-col md:flex-row justify-center items-center gap-8 md:gap-16">
+                    <!-- Step 1 -->
+                    <div class="text-center max-w-xs">
+                        <div
+                            class="bg-indigo-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg">
+                            1</div>
+                        <h3 class="text-xl font-bold mb-2">Upload Your Case File</h3>
+                        <p class="text-gray-600">Securely drag and drop or upload your documents in various formats
+                            (PDF, DOCX, etc.).</p>
+                    </div>
+                    <!-- Step 2 -->
+                    <div class="text-center max-w-xs">
+                        <div
+                            class="bg-indigo-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg">
+                            2</div>
+                        <h3 class="text-xl font-bold mb-2">AI Analyzes & Extracts</h3>
+                        <p class="text-gray-600">Our powerful AI processes the text, identifies key events, and
+                            constructs a detailed timeline.</p>
+                    </div>
+                    <!-- Step 3 -->
+                    <div class="text-center max-w-xs">
+                        <div
+                            class="bg-indigo-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg">
+                            3</div>
+                        <h3 class="text-xl font-bold mb-2">Review & Export</h3>
+                        <p class="text-gray-600">Collaborate, edit, and export your timeline in your preferred format to
+                            integrate into your workflow.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials Section -->
+        <section id="testimonials" class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Trusted by Legal Professionals</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-md">
+                        <p class="text-gray-600 mb-6">"LexiChron has become an indispensable tool in my practice. The
+                            timeline extraction is incredibly accurate and saves me countless hours. It's a game-changer
+                            for case management."</p>
+                        <div class="flex items-center">
+                            <img src="https://placehold.co/50x50/e2e8f0/333333?text=JS" class="rounded-full mr-4">
+                            <div>
+                                <p class="font-bold">Jane Smith</p>
+                                <p class="text-sm text-gray-500">Partner, Smith & Associates</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-md">
+                        <p class="text-gray-600 mb-6">"The accuracy of the AI is astounding. I uploaded a 500-page case
+                            file and had a working timeline in minutes. I can't imagine going back to the manual
+                            process."</p>
+                        <div class="flex items-center">
+                            <img src="https://placehold.co/50x50/e2e8f0/333333?text=MD" class="rounded-full mr-4">
+                            <div>
+                                <p class="font-bold">Michael Davis</p>
+                                <p class="text-sm text-gray-500">Solo Practitioner</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-md">
+                        <p class="text-gray-600 mb-6">"A must-have for any modern law firm. Not only does it save time,
+                            but it helps uncover connections and details in a case that might have been missed. Highly
+                            recommended."</p>
+                        <div class="flex items-center">
+                            <img src="https://placehold.co/50x50/e2e8f0/333333?text=EW" class="rounded-full mr-4">
+                            <div>
+                                <p class="font-bold">Emily White</p>
+                                <p class="text-sm text-gray-500">Senior Counsel, Tech Law Group</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section id="faq" class="py-20 bg-gray-50">
+            <div class="container mx-auto px-6 max-w-3xl">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Frequently Asked Questions</h2>
+                </div>
+                <div class="space-y-4">
+                    <div class="bg-white p-6 rounded-lg shadow-md faq-item">
+                        <button
+                            class="w-full text-left flex justify-between items-center text-lg font-semibold text-gray-800 focus:outline-none">
+                            Is my data secure?
+                            <i class="fas fa-chevron-down transform transition-transform"></i>
+                        </button>
+                        <div
+                            class="mt-4 text-gray-600 max-h-0 overflow-hidden transition-max-h duration-500 ease-in-out">
+                            Absolutely. We use end-to-end encryption and adhere to the highest standards of data
+                            security and confidentiality. Your case files are for your eyes only.
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md faq-item">
+                        <button
+                            class="w-full text-left flex justify-between items-center text-lg font-semibold text-gray-800 focus:outline-none">
+                            What file formats do you support?
+                            <i class="fas fa-chevron-down transform transition-transform"></i>
+                        </button>
+                        <div
+                            class="mt-4 text-gray-600 max-h-0 overflow-hidden transition-max-h duration-500 ease-in-out">
+                            We support a wide range of formats including PDF, DOCX, TXT, and more. Our AI is designed to
+                            handle both scanned documents and digital text with high accuracy.
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md faq-item">
+                        <button
+                            class="w-full text-left flex justify-between items-center text-lg font-semibold text-gray-800 focus:outline-none">
+                            Can I edit the generated timeline?
+                            <i class="fas fa-chevron-down transform transition-transform"></i>
+                        </button>
+                        <div
+                            class="mt-4 text-gray-600 max-h-0 overflow-hidden transition-max-h duration-500 ease-in-out">
+                            Yes. The generated timeline is fully interactive and editable. You can add, remove, or
+                            modify events as needed to ensure it perfectly reflects your case narrative.
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md faq-item">
+                        <button
+                            class="w-full text-left flex justify-between items-center text-lg font-semibold text-gray-800 focus:outline-none">
+                            Do you offer a free trial?
+                            <i class="fas fa-chevron-down transform transition-transform"></i>
+                        </button>
+                        <div
+                            class="mt-4 text-gray-600 max-h-0 overflow-hidden transition-max-h duration-500 ease-in-out">
+                            Yes, we offer a free trial that allows you to test the core features of LexiChron. Sign up
+                            to get started and see the power of our AI for yourself.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="py-20 bg-indigo-700 text-white">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Ready to Transform Your Legal Workflow?</h2>
+                <p class="text-indigo-200 max-w-2xl mx-auto mb-8">Join the growing number of legal professionals who are
+                    leveraging AI to work smarter, not harder. Sign up today and get started in minutes.</p>
+                <a href="#"
+                    class="bg-white text-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition duration-300 shadow-lg transform hover:scale-105">Sign
+                    Up Now</a>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4"><i
+                            class="fas fa-balance-scale mr-2 text-indigo-400"></i>LexiChron</h3>
+                    <p class="text-gray-400">AI-powered legal tools for the modern professional.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#features" class="text-gray-400 hover:text-white">Features</a></li>
+                        <li><a href="#how-it-works" class="text-gray-400 hover:text-white">How It Works</a></li>
+                        <li><a href="#pricing" class="text-gray-400 hover:text-white">Pricing</a></li>
+                        <li><a href="#faq" class="text-gray-400 hover:text-white">FAQ</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Legal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">Terms of Service</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Connect With Us</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-twitter fa-lg"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-linkedin-in fa-lg"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-facebook-f fa-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-500 text-sm">
+                &copy; 2024 LexiChron. All Rights Reserved.
+            </div>
+        </div>
+    </footer>
+
+
+    <script>
+        // Mobile menu toggle
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // FAQ Accordion
+        const faqItems = document.querySelectorAll('.faq-item');
+        faqItems.forEach(item => {
+            const button = item.querySelector('button');
+            const content = item.querySelector('div');
+            const icon = button.querySelector('i');
+
+            button.addEventListener('click', () => {
+                const isExpanded = content.style.maxHeight && content.style.maxHeight !== '0px';
+
+                // Close all other items
+                faqItems.forEach(otherItem => {
+                    if (otherItem !== item) {
+                        otherItem.querySelector('div').style.maxHeight = '0px';
+                        otherItem.querySelector('button i').classList.remove('rotate-180');
+                    }
+                });
+
+                // Toggle current item
+                if (isExpanded) {
+                    content.style.maxHeight = '0px';
+                    icon.classList.remove('rotate-180');
+                } else {
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                    icon.classList.add('rotate-180');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

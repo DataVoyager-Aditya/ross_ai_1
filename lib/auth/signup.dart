@@ -44,17 +44,14 @@ class _SignUpPageState extends State<SignUpPage> {
     super.dispose();
   }
 
-  // Validate email format
   bool _isValidEmail(String email) {
     return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
   }
 
-  // Validate password strength
   bool _isValidPassword(String password) {
     return password.length >= 6;
   }
 
-  // Pick profile image
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(
@@ -72,43 +69,10 @@ class _SignUpPageState extends State<SignUpPage> {
     }
   }
 
-  // Build profile avatar with proper image preview for web and mobile
-  Widget _buildProfileAvatar() {
-    return CircleAvatar(
-      radius: 50,
-      backgroundColor: Colors.grey.shade200,
-      child: _profileImage == null
-          ? const Icon(Icons.person, size: 50, color: Colors.grey)
-          : kIsWeb
-          ? FutureBuilder<Uint8List>(
-              future: _profileImage!.readAsBytes(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return CircleAvatar(
-                    radius: 50,
-                    backgroundImage: MemoryImage(snapshot.data!),
-                  );
-                }
-                return const CircularProgressIndicator();
-              },
-            )
-          : CircleAvatar(
-              radius: 50,
-              backgroundImage: FileImage(File(_profileImage!.path)),
-            ),
-    );
-  }
-
-  // Handle email/password signup
   Future<void> _handleEmailSignUp() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedCaseType == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select your role'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showErrorSnackBar('Please select your role');
       return;
     }
 
@@ -117,11 +81,9 @@ class _SignUpPageState extends State<SignUpPage> {
       listen: false,
     );
 
-    // Convert XFile to File for mobile platforms
     File? profileImageFile;
     if (_profileImage != null) {
       if (kIsWeb) {
-        // For web, we'll handle it in the auth provider
         profileImageFile = null;
       } else {
         profileImageFile = File(_profileImage!.path);
@@ -146,34 +108,21 @@ class _SignUpPageState extends State<SignUpPage> {
 
       if (user != null && mounted) {
         debugPrint('Signup successful, navigating to home...');
-        // Navigate to home page
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const HomePage()),
         );
       } else if (mounted) {
         debugPrint('Signup failed: ${authProvider.errorMessage}');
-        // Show error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authProvider.errorMessage ?? 'Sign up failed'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showErrorSnackBar(authProvider.errorMessage ?? 'Sign up failed');
       }
     } catch (e) {
       debugPrint('Error during signup process: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Sign up failed: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showErrorSnackBar('Sign up failed: $e');
       }
     }
   }
 
-  // Handle Google sign-in
   Future<void> _handleGoogleSignIn() async {
     final authProvider = Provider.of<FirebaseAuthProvider>(
       context,
@@ -183,22 +132,14 @@ class _SignUpPageState extends State<SignUpPage> {
     final user = await authProvider.signInWithGoogle();
 
     if (user != null && mounted) {
-      // Navigate to home page
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
     } else if (mounted && authProvider.errorMessage != null) {
-      // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.errorMessage!),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showErrorSnackBar(authProvider.errorMessage!);
     }
   }
 
-  // Handle guest access
   Future<void> _handleGuestAccess() async {
     final authProvider = Provider.of<FirebaseAuthProvider>(
       context,
@@ -208,350 +149,748 @@ class _SignUpPageState extends State<SignUpPage> {
     final user = await authProvider.signInAsGuest();
 
     if (user != null && mounted) {
-      // Navigate to home page
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
     } else if (mounted && authProvider.errorMessage != null) {
-      // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.errorMessage!),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showErrorSnackBar(authProvider.errorMessage!);
     }
   }
 
-  // Navigate to signin page
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.error_outline, color: Colors.white, size: 20),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: Colors.red.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+
   void _navigateToSignIn() {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => const LoginPage()),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Consumer<FirebaseAuthProvider>(
-        builder: (context, authProvider, child) {
-          return Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.asset(
-                        'assets/images/logo1.png',
-                        height: 150,
-                        width: double.infinity,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      "Welcome to ROSS AI",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+  Widget _buildLogo() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.asset(
+          'assets/images/logo1.png',
+          height: 60,
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
 
-                    // Profile Photo Section
-                    Center(
-                      child: Stack(
-                        children: [
-                          _buildProfileAvatar(),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: CircleAvatar(
-                              backgroundColor: Colors.blue,
-                              child: IconButton(
-                                icon: const Icon(
-                                  Icons.camera_alt,
-                                  color: Colors.white,
-                                ),
-                                onPressed: _pickImage,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
+  Widget _buildWelcomeText() {
+    return Column(
+      children: [
+        Text(
+          "Create Account",
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey.shade800,
+            letterSpacing: -0.5,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "Join ROSS AI to get started",
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.grey.shade600,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      ],
+    );
+  }
 
-                    // Name field
-                    TextFormField(
-                      controller: nameController,
-                      enabled: !authProvider.isLoading,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your name';
+  Widget _buildProfileImagePicker() {
+    return Center(
+      child: Stack(
+        children: [
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.grey.shade300, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: CircleAvatar(
+              radius: 48,
+              backgroundColor: Colors.grey.shade100,
+              child: _profileImage == null
+                  ? Icon(Icons.person, size: 40, color: Colors.grey.shade400)
+                  : kIsWeb
+                  ? FutureBuilder<Uint8List>(
+                      future: _profileImage!.readAsBytes(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          return CircleAvatar(
+                            radius: 48,
+                            backgroundImage: MemoryImage(snapshot.data!),
+                          );
                         }
-                        return null;
+                        return const CircularProgressIndicator();
                       },
-                      decoration: InputDecoration(
-                        hintText: 'Full Name',
-                        filled: true,
-                        fillColor: Colors.grey.shade100,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        prefixIcon: const Icon(Icons.person),
+                    )
+                  : CircleAvatar(
+                      radius: 48,
+                      backgroundImage: FileImage(File(_profileImage!.path)),
+                    ),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.blue.shade600,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blue.shade200.withOpacity(0.5),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: IconButton(
+                icon: const Icon(
+                  Icons.camera_alt,
+                  color: Colors.white,
+                  size: 18,
+                ),
+                onPressed: _pickImage,
+                iconSize: 30,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNameField() {
+    return Consumer<FirebaseAuthProvider>(
+      builder: (context, authProvider, child) {
+        return TextFormField(
+          controller: nameController,
+          enabled: !authProvider.isLoading,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter your name';
+            }
+            return null;
+          },
+          decoration: InputDecoration(
+            hintText: 'Enter your full name',
+            hintStyle: TextStyle(color: Colors.grey.shade500),
+            prefixIcon: Container(
+              margin: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.person_outline,
+                color: Colors.blue.shade600,
+                size: 20,
+              ),
+            ),
+            filled: true,
+            fillColor: Colors.grey.shade50,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.blue.shade400, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.red.shade400, width: 2),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 16,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEmailField() {
+    return Consumer<FirebaseAuthProvider>(
+      builder: (context, authProvider, child) {
+        return TextFormField(
+          controller: emailController,
+          keyboardType: TextInputType.emailAddress,
+          enabled: !authProvider.isLoading,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter your email';
+            }
+            if (!_isValidEmail(value)) {
+              return 'Please enter a valid email';
+            }
+            return null;
+          },
+          decoration: InputDecoration(
+            hintText: 'Enter your email',
+            hintStyle: TextStyle(color: Colors.grey.shade500),
+            prefixIcon: Container(
+              margin: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.email_outlined,
+                color: Colors.blue.shade600,
+                size: 20,
+              ),
+            ),
+            filled: true,
+            fillColor: Colors.grey.shade50,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.blue.shade400, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.red.shade400, width: 2),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 16,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildRoleDropdown() {
+    return Consumer<FirebaseAuthProvider>(
+      builder: (context, authProvider, child) {
+        return DropdownButtonFormField<String>(
+          value: _selectedCaseType,
+          items: _caseTypes.map((String type) {
+            return DropdownMenuItem<String>(value: type, child: Text(type));
+          }).toList(),
+          validator: (value) {
+            if (value == null) {
+              return 'Please select your role';
+            }
+            return null;
+          },
+          decoration: InputDecoration(
+            hintText: 'Select your role',
+            hintStyle: TextStyle(color: Colors.grey.shade500),
+            prefixIcon: Container(
+              margin: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.work_outline,
+                color: Colors.blue.shade600,
+                size: 20,
+              ),
+            ),
+            filled: true,
+            fillColor: Colors.grey.shade50,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.blue.shade400, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.red.shade400, width: 2),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 16,
+            ),
+          ),
+          onChanged: authProvider.isLoading
+              ? null
+              : (value) {
+                  setState(() {
+                    _selectedCaseType = value;
+                  });
+                },
+        );
+      },
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return Consumer<FirebaseAuthProvider>(
+      builder: (context, authProvider, child) {
+        return TextFormField(
+          controller: passwordController,
+          obscureText: _obscurePassword,
+          enabled: !authProvider.isLoading,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter your password';
+            }
+            if (!_isValidPassword(value)) {
+              return 'Password must be at least 6 characters';
+            }
+            return null;
+          },
+          decoration: InputDecoration(
+            hintText: 'Create a password',
+            hintStyle: TextStyle(color: Colors.grey.shade500),
+            prefixIcon: Container(
+              margin: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.lock_outline,
+                color: Colors.blue.shade600,
+                size: 20,
+              ),
+            ),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                color: Colors.grey.shade600,
+              ),
+              onPressed: () {
+                setState(() {
+                  _obscurePassword = !_obscurePassword;
+                });
+              },
+            ),
+            filled: true,
+            fillColor: Colors.grey.shade50,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.blue.shade400, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.red.shade400, width: 2),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 16,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildConfirmPasswordField() {
+    return Consumer<FirebaseAuthProvider>(
+      builder: (context, authProvider, child) {
+        return TextFormField(
+          controller: confirmPasswordController,
+          obscureText: _obscureConfirmPassword,
+          enabled: !authProvider.isLoading,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please confirm your password';
+            }
+            if (value != passwordController.text) {
+              return 'Passwords do not match';
+            }
+            return null;
+          },
+          decoration: InputDecoration(
+            hintText: 'Confirm your password',
+            hintStyle: TextStyle(color: Colors.grey.shade500),
+            prefixIcon: Container(
+              margin: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.lock_outline,
+                color: Colors.blue.shade600,
+                size: 20,
+              ),
+            ),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscureConfirmPassword
+                    ? Icons.visibility_off
+                    : Icons.visibility,
+                color: Colors.grey.shade600,
+              ),
+              onPressed: () {
+                setState(() {
+                  _obscureConfirmPassword = !_obscureConfirmPassword;
+                });
+              },
+            ),
+            filled: true,
+            fillColor: Colors.grey.shade50,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.grey.shade200),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.blue.shade400, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.red.shade400, width: 2),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 16,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSignUpButton() {
+    return Consumer<FirebaseAuthProvider>(
+      builder: (context, authProvider, child) {
+        return Container(
+          width: double.infinity,
+          height: 56,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              colors: [Colors.blue.shade600, Colors.blue.shade700],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.shade300.withOpacity(0.4),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            onPressed: authProvider.isLoading ? null : _handleEmailSignUp,
+            child: authProvider.isLoading
+                ? const SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : const Text(
+                    "Create Account",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDivider() {
+    return Row(
+      children: [
+        Expanded(child: Divider(color: Colors.grey.shade300, thickness: 1)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Text(
+            "OR",
+            style: TextStyle(
+              color: Colors.grey.shade500,
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+            ),
+          ),
+        ),
+        Expanded(child: Divider(color: Colors.grey.shade300, thickness: 1)),
+      ],
+    );
+  }
+
+  Widget _buildGoogleButton() {
+    return Consumer<FirebaseAuthProvider>(
+      builder: (context, authProvider, child) {
+        return Container(
+          width: double.infinity,
+          height: 56,
+          child: OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: Colors.grey.shade300, width: 1.5),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              backgroundColor: Colors.white,
+            ),
+            onPressed: authProvider.isLoading ? null : _handleGoogleSignIn,
+            child: authProvider.isLoading
+                ? const SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2.5),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        'assets/images/google.png',
+                        height: 24,
+                        width: 24,
                       ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Email field
-                    TextFormField(
-                      controller: emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      enabled: !authProvider.isLoading,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
-                        }
-                        if (!_isValidEmail(value)) {
-                          return 'Please enter a valid email';
-                        }
-                        return null;
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Email',
-                        filled: true,
-                        fillColor: Colors.grey.shade100,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        prefixIcon: const Icon(Icons.email),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Role dropdown
-                    DropdownButtonFormField<String>(
-                      value: _selectedCaseType,
-                      items: _caseTypes.map((String type) {
-                        return DropdownMenuItem<String>(
-                          value: type,
-                          child: Text(type),
-                        );
-                      }).toList(),
-                      decoration: InputDecoration(
-                        hintText: "Your Role",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        prefixIcon: const Icon(Icons.work),
-                      ),
-                      onChanged: authProvider.isLoading
-                          ? null
-                          : (value) {
-                              setState(() {
-                                _selectedCaseType = value;
-                              });
-                            },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Password field
-                    TextFormField(
-                      controller: passwordController,
-                      obscureText: _obscurePassword,
-                      enabled: !authProvider.isLoading,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
-                        }
-                        if (!_isValidPassword(value)) {
-                          return 'Password must be at least 6 characters';
-                        }
-                        return null;
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Password',
-                        filled: true,
-                        fillColor: Colors.grey.shade100,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        prefixIcon: const Icon(Icons.lock),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
+                      const SizedBox(width: 12),
+                      Text(
+                        "Continue with Google",
+                        style: TextStyle(
+                          color: Colors.grey.shade700,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
+                    ],
+                  ),
+          ),
+        );
+      },
+    );
+  }
 
-                    // Confirm password field
-                    TextFormField(
-                      controller: confirmPasswordController,
-                      obscureText: _obscureConfirmPassword,
-                      enabled: !authProvider.isLoading,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please confirm your password';
-                        }
-                        if (value != passwordController.text) {
-                          return 'Passwords do not match';
-                        }
-                        return null;
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Confirm Password',
-                        filled: true,
-                        fillColor: Colors.grey.shade100,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureConfirmPassword
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscureConfirmPassword =
-                                  !_obscureConfirmPassword;
-                            });
-                          },
+  Widget _buildGuestButton() {
+    return Consumer<FirebaseAuthProvider>(
+      builder: (context, authProvider, child) {
+        return Container(
+          width: double.infinity,
+          height: 56,
+          child: OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: Colors.grey.shade300, width: 1.5),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              backgroundColor: Colors.white,
+            ),
+            onPressed: authProvider.isLoading ? null : _handleGuestAccess,
+            child: authProvider.isLoading
+                ? const SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2.5),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.person_outline,
+                        color: Colors.grey.shade600,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        "Continue as Guest",
+                        style: TextStyle(
+                          color: Colors.grey.shade700,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
+                    ],
+                  ),
+          ),
+        );
+      },
+    );
+  }
 
-                    // Create account button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 45,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          disabledBackgroundColor: Colors.grey,
-                        ),
-                        onPressed: authProvider.isLoading
-                            ? null
-                            : _handleEmailSignUp,
-                        child: authProvider.isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
-                                ),
-                              )
-                            : const Text(
-                                "Create your new account",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Guest access button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 45,
-                      child: OutlinedButton(
-                        onPressed: authProvider.isLoading
-                            ? null
-                            : _handleGuestAccess,
-                        child: authProvider.isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text("Continue as Guest"),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Sign in link
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text("Already have an account? "),
-                        GestureDetector(
-                          onTap: authProvider.isLoading
-                              ? null
-                              : _navigateToSignIn,
-                          child: const Text(
-                            "Sign in",
-                            style: TextStyle(
-                              color: Colors.blue,
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Divider
-                    Row(
-                      children: const [
-                        Expanded(child: Divider(thickness: 1)),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8),
-                          child: Text("OR"),
-                        ),
-                        Expanded(child: Divider(thickness: 1)),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Google sign-in button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 45,
-                      child: OutlinedButton.icon(
-                        icon: Image.asset(
-                          'assets/images/google.png',
-                          height: 20,
-                        ),
-                        label: authProvider.isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text("Continue with Google"),
-                        onPressed: authProvider.isLoading
-                            ? null
-                            : _handleGoogleSignIn,
-                      ),
-                    ),
-                  ],
+  Widget _buildFooterLinks() {
+    return Consumer<FirebaseAuthProvider>(
+      builder: (context, authProvider, child) {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "Already have an account? ",
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 15),
+            ),
+            GestureDetector(
+              onTap: authProvider.isLoading ? null : _navigateToSignIn,
+              child: Text(
+                "Sign In",
+                style: TextStyle(
+                  color: Colors.blue.shade600,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
-          );
-        },
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width > 768;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Scaffold(
+      backgroundColor: Colors.grey.shade50,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(
+              horizontal: isDesktop ? 48 : 24,
+              vertical: 24,
+            ),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: isDesktop ? 400 : double.infinity,
+                minHeight: screenHeight - 100,
+              ),
+              child: IntrinsicHeight(
+                child: Container(
+                  padding: EdgeInsets.all(isDesktop ? 40 : 32),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 30,
+                        offset: const Offset(0, 15),
+                      ),
+                    ],
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildLogo(),
+                        const SizedBox(height: 24),
+                        _buildWelcomeText(),
+                        const SizedBox(height: 32),
+                        _buildProfileImagePicker(),
+                        const SizedBox(height: 32),
+                        _buildNameField(),
+                        const SizedBox(height: 20),
+                        _buildEmailField(),
+                        const SizedBox(height: 20),
+                        _buildRoleDropdown(),
+                        const SizedBox(height: 20),
+                        _buildPasswordField(),
+                        const SizedBox(height: 20),
+                        _buildConfirmPasswordField(),
+                        const SizedBox(height: 32),
+                        _buildSignUpButton(),
+                        const SizedBox(height: 24),
+                        _buildDivider(),
+                        const SizedBox(height: 24),
+                        _buildGoogleButton(),
+                        const SizedBox(height: 16),
+                        _buildGuestButton(),
+                        const SizedBox(height: 32),
+                        _buildFooterLinks(),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
