@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../variables/profile.dart';
 import '../variables/cases.dart';
 import 'utils/encryption.dart';
@@ -7,6 +8,8 @@ import 'components/features_grid.dart';
 import 'components/recent_cases.dart';
 import 'components/faq.dart';
 import '../utils/loading_animation.dart';
+import '../timeline_extractor/provider/timeline_extractor_provider.dart';
+import '../timeline_extractor/timeline_detail_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -106,7 +109,7 @@ class HomePage extends StatelessWidget {
                       GestureDetector(
                         onTap: () async {
                           showLegalLoader(context);
-                          await Future.delayed(Duration(seconds: 4));
+                          await Future.delayed(Duration(seconds: 2));
                           Navigator.pop(context); // dismiss loader
                           Navigator.pushNamed(context, '/jurisdiction');
                         },
@@ -119,21 +122,21 @@ class HomePage extends StatelessWidget {
                               "https://lh3.googleusercontent.com/aida-public/AB6AXuDDfEVleAV0lVXxWED74ZBEuT5TtLROnEfNl4LrPSrCC5JGMU2PWWz_7J8H-vIndkJ5yPq_gUuUQURq64mfxsCs-ZGMbRCOCMPWzMSmEiPJzQc4peUuKkDkpGmFEHkwZNaAZxb_bgogKPoQTYUD1YeIOPbBz9nh1K3O7oA2X5r3n3th_rLEx4UYwG5JoU8SZMPByMleo65Il7N31c4ZPKMsWJk5ORxhi2fn8aGCcwknHDUNjarnBYI2k31j_Cf8NWQ-1h0D-drsK0o",
                         ),
                       ),
-                      GestureDetector(
-                        onTap: () async {
-                          showLegalLoader(context);
-                          await Future.delayed(Duration(seconds: 4));
-                          Navigator.pop(context); // dismiss loader
-                          Navigator.pushNamed(context, '/precedents');
-                        },
-                        child: FeaturesGrid(
-                          widgetName: "Precedent Finder",
-                          widgetDescription:
-                              "Find relevant case laws instantly",
-                          widgetImage:
-                              "https://lh3.googleusercontent.com/aida-public/AB6AXuCnK9rkEsVXDXTbzaE9qMnUCEXqd3y4vRFen0WFYL2wzh2nqOFoIwVIPfwMfACPcvGv799_h6mtsxhgQOnh386ur-YFwwP4h6rqjki9N-EQ-7wP-JdePjTKH-pcNNeX57ptvvTgQ0S1cxTgqLDlRgaE9JkTgySO_mgZ0L2gjs4-N3KvLGRMfWeye9LCwL7PCXBXr48HT1uiIlos0uH_wEj-Z8-XFtHY22R3EWRkJ2b5veN9NSkm4C2TWIMSF-X5hLXFw5pg1d6iqbA",
-                        ),
-                      ),
+                      // GestureDetector(
+                      //   onTap: () async {
+                      //     showLegalLoader(context);
+                      //     await Future.delayed(Duration(seconds: 2));
+                      //     Navigator.pop(context); // dismiss loader
+                      //     Navigator.pushNamed(context, '/precedents');
+                      //   },
+                      //   child: FeaturesGrid(
+                      //     widgetName: "Precedent Finder",
+                      //     widgetDescription:
+                      //         "Find relevant case laws instantly",
+                      //     widgetImage:
+                      //         "https://lh3.googleusercontent.com/aida-public/AB6AXuCnK9rkEsVXDXTbzaE9qMnUCEXqd3y4vRFen0WFYL2wzh2nqOFoIwVIPfwMfACPcvGv799_h6mtsxhgQOnh386ur-YFwwP4h6rqjki9N-EQ-7wP-JdePjTKH-pcNNeX57ptvvTgQ0S1cxTgqLDlRgaE9JkTgySO_mgZ0L2gjs4-N3KvLGRMfWeye9LCwL7PCXBXr48HT1uiIlos0uH_wEj-Z8-XFtHY22R3EWRkJ2b5veN9NSkm4C2TWIMSF-X5hLXFw5pg1d6iqbA",
+                      //   ),
+                      // ),
                     ],
                   ),
                   SizedBox(height: 60),
@@ -143,36 +146,62 @@ class HomePage extends StatelessWidget {
                   ),
                   SizedBox(height: 20),
 
-                  caseData.isNotEmpty
-                      ? SizedBox(
-                          height: 80,
-
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: caseData.length,
-                            itemBuilder: (context, index) {
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 20.0),
-                                child: Row(
-                                  children: [
-                                    HoverToolTip(
-                                      message:
-                                          "🔒 Your case is encrypted.\nOnly you can view its name.",
+                  // Recent Cases from Firestore
+                  Consumer<TimelineExtractorProvider>(
+                    builder: (context, provider, child) {
+                      return FutureBuilder<List<Map<String, dynamic>>>(
+                        future: provider.fetchUserCases(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          } else if (snapshot.hasError) {
+                            return Text('Error: \\${snapshot.error}');
+                          } else if (snapshot.hasData &&
+                              snapshot.data!.isNotEmpty) {
+                            final cases = snapshot.data!;
+                            return SizedBox(
+                              height: 80,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: cases.length,
+                                itemBuilder: (context, index) {
+                                  final caseItem = cases[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 20.0),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => TimelineDetailPage(
+                                              caseId: caseItem['caseId'],
+                                              caseTitle:
+                                                  caseItem['title'] ??
+                                                  'Untitled',
+                                            ),
+                                          ),
+                                        );
+                                      },
                                       child: RecentCases(
-                                        caseName: EncryptionHelper.decryptText(
-                                          caseData[index]["name"].toString(),
-                                        ),
-                                        caseDate: caseData[index]["date"]
-                                            .toString(),
+                                        caseName:
+                                            caseItem['title'] ?? 'Untitled',
+                                        caseDate: caseItem['uploadedAt'],
                                       ),
                                     ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                        )
-                      : EmptyCase(),
+                                  );
+                                },
+                              ),
+                            );
+                          } else {
+                            return const EmptyCase();
+                          }
+                        },
+                      );
+                    },
+                  ),
                   SizedBox(height: 60),
                   Text(
                     "Frequently Asked Questions",

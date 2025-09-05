@@ -613,7 +613,74 @@ class _TimelineExtractorState extends State<TimelineExtractor> {
                         provider.extractedText!.isNotEmpty)
                       const SizedBox(height: 24),
                     if (provider.extractedEvents.isNotEmpty)
-                      _buildTimeline(provider.extractedEvents),
+                      Column(
+                        children: [
+                          _buildTimeline(provider.extractedEvents),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              ElevatedButton.icon(
+                                icon: const Icon(Icons.save),
+                                label: const Text('Save Timeline'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 14,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                onPressed: () async {
+                                  final titleController =
+                                      TextEditingController();
+                                  final result = await showDialog<String>(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text('Save Timeline'),
+                                      content: TextField(
+                                        controller: titleController,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Case Title',
+                                        ),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          child: const Text('Cancel'),
+                                        ),
+                                        ElevatedButton(
+                                          onPressed: () => Navigator.pop(
+                                            context,
+                                            titleController.text,
+                                          ),
+                                          child: const Text('Save'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  if (result != null &&
+                                      result.trim().isNotEmpty) {
+                                    await provider.saveTimelineToFirestore(
+                                      result.trim(),
+                                    );
+                                    await provider.fetchUserCases();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Timeline saved!'),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                   ],
                 );
               },

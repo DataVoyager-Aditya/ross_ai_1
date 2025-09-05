@@ -342,6 +342,14 @@ class _LandingPageState extends State<LandingPage> {
               ),
               SizedBox(height: 24),
               FeatureCard(
+                icon: FontAwesomeIcons.mapMarkedAlt,
+                title: 'Jurisdiction Conflict Checker',
+                description:
+                    'Our AI will analyze your case to identify potential jurisdiction conflicts, saving you from costly and time-consuming errors.',
+                isComingSoon: false,
+              ),
+              SizedBox(height: 24),
+              FeatureCard(
                 icon: FontAwesomeIcons.gavel,
                 title: 'AI Precedent Finder',
                 description:
@@ -349,13 +357,6 @@ class _LandingPageState extends State<LandingPage> {
                 isComingSoon: true,
               ),
               SizedBox(height: 24),
-              FeatureCard(
-                icon: FontAwesomeIcons.mapMarkedAlt,
-                title: 'Jurisdiction Conflict Checker',
-                description:
-                    'Our AI will analyze your case to identify potential jurisdiction conflicts, saving you from costly and time-consuming errors.',
-                isComingSoon: true,
-              ),
             ],
           ),
         ],

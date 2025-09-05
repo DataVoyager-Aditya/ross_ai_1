@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class RecentCases extends StatelessWidget {
   final String caseName;
-  final String caseDate;
+  final Timestamp caseDate;
 
   const RecentCases({
     required this.caseName,
@@ -31,10 +33,9 @@ class RecentCases extends StatelessWidget {
               ),
             ),
             Text(
-              "Date: $caseDate",
+              DateFormat('yMMMd').format(caseDate.toDate()),
               style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
-            
           ],
         ),
       ),
@@ -53,7 +54,12 @@ class EmptyCase extends StatelessWidget {
       ),
       height: 100,
       width: double.infinity,
-      child: Center(child: Text("No Recent Activity", style: TextStyle(fontSize: 15, color: Colors.grey),)),
+      child: Center(
+        child: Text(
+          "No Recent Activity",
+          style: TextStyle(fontSize: 15, color: Colors.grey),
+        ),
+      ),
     );
   }
 }

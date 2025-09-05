@@ -1,1 +1,33 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"ross-ai-b6809","appId":"1:1042853929889:android:9a8e4f7ddb137e899121e0","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"ross-ai-b6809","configurations":{"android":"1:1042853929889:android:9a8e4f7ddb137e899121e0","web":"1:1042853929889:web:6cf749af10e513cb9121e0"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "ross-ai-b6809",
+          "appId": "1:1042853929889:android:9a8e4f7ddb137e899121e0",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "ross-ai-b6809",
+          "configurations": {
+            "android": "1:1042853929889:android:9a8e4f7ddb137e899121e0",
+            "web": "1:1042853929889:web:6cf749af10e513cb9121e0"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "source": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "frameworksBackend": {
+      "region": "asia-east1"
+    }
+  }
+}

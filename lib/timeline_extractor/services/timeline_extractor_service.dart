@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class TimelineEvent {
   final String? date;
@@ -228,5 +229,46 @@ OUTPUT JSON SCHEMA (exact keys)
     } catch (e) {
       throw Exception('Timeline extraction failed: $e');
     }
+  }
+
+  static Future<void> saveCaseToFirestore(
+    String userId,
+    String caseId,
+    Map<String, dynamic> caseData,
+  ) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('cases')
+        .doc(caseId)
+        .set(caseData);
+  }
+
+  static Future<List<Map<String, dynamic>>> getUserCases(String userId) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('cases')
+        .orderBy('uploadedAt', descending: true)
+        .get();
+    return snapshot.docs.map((doc) => doc.data()).toList();
+  }
+
+  static Future<List<TimelineEvent>> getTimelineForCase(
+    String userId,
+    String caseId,
+  ) async {
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('cases')
+        .doc(caseId)
+        .get();
+    if (!doc.exists) return [];
+    final data = doc.data();
+    final events = (data?['events'] as List<dynamic>? ?? [])
+        .map((e) => TimelineEvent.fromJson(e as Map<String, dynamic>))
+        .toList();
+    return events;
   }
 }

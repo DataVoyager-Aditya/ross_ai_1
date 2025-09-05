@@ -83,6 +83,68 @@ class TimelineExtractorProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> saveTimelineToFirestore(String caseTitle) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception('User not authenticated');
+      if (_extractedEvents.isEmpty) throw Exception('No timeline to save');
+      final caseId = DateTime.now().millisecondsSinceEpoch.toString();
+      final caseData = {
+        'caseId': caseId,
+        'title': caseTitle,
+        'uploadedAt': DateTime.now(),
+        'events': _extractedEvents
+            .map(
+              (e) => {
+                'date': e.date,
+                'start_date': e.startDate,
+                'end_date': e.endDate,
+                'date_precision': e.datePrecision,
+                'title': e.title,
+                'what_happened': e.whatHappened,
+              },
+            )
+            .toList(),
+        'userId': user.uid,
+      };
+      await TimelineExtractorService.saveCaseToFirestore(
+        user.uid,
+        caseId,
+        caseData,
+      );
+    } catch (e) {
+      _errorMessage = 'Failed to save timeline: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> fetchUserCases() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception('User not authenticated');
+      return await TimelineExtractorService.getUserCases(user.uid);
+    } catch (e) {
+      _errorMessage = 'Failed to fetch cases: $e';
+      notifyListeners();
+      return [];
+    }
+  }
+
+  Future<List<TimelineEvent>> fetchTimelineForCase(String caseId) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception('User not authenticated');
+      return await TimelineExtractorService.getTimelineForCase(
+        user.uid,
+        caseId,
+      );
+    } catch (e) {
+      _errorMessage = 'Failed to fetch timeline: $e';
+      notifyListeners();
+      return [];
+    }
+  }
+
   void clearError() {
     _errorMessage = null;
     notifyListeners();
