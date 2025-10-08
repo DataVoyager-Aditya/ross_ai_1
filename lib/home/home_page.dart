@@ -57,24 +57,16 @@ class _HomePageState extends State<HomePage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  GestureDetector(
-                    onTap: () async {
-                      showLegalLoader(context);
-                      await Future.delayed(Duration(seconds: 2));
-                      Navigator.pop(context); // dismiss loader
-                      Navigator.pushNamed(context, '/home');
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: Colors.white,
-                      ),
-                      child: Image.asset(
-                        "assets/images/logo1.png",
-                        height: isDesktop ? 50 : 45,
-                        fit: BoxFit.contain,
-                      ),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.white,
+                    ),
+                    child: Image.asset(
+                      "assets/images/logo1.png",
+                      height: isDesktop ? 50 : 45,
+                      fit: BoxFit.contain,
                     ),
                   ),
                   Consumer<FirebaseAuthProvider>(
@@ -164,14 +156,25 @@ class _HomePageState extends State<HomePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "Welcome, ${FirebaseAuth.instance.currentUser?.displayName} 👋",
-                          style: TextStyle(
-                            fontSize: isDesktop ? 36 : 28,
-                            fontWeight: FontWeight.w800,
-                            color: const Color(0xFF1E293B),
-                            letterSpacing: -0.5,
-                          ),
+                        Consumer<FirebaseAuthProvider>(
+                          builder: (context, provider, child) {
+                            if (provider.isLoading) {
+                              return const SizedBox.shrink();
+                            }
+                            if (provider.userProfile?["name"] == null) {
+                              return const SizedBox.shrink();
+                            }
+
+                            return Text(
+                              "Welcome, ${provider.userProfile?["name"]} 👋",
+                              style: TextStyle(
+                                fontSize: isDesktop ? 36 : 28,
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFF1E293B),
+                                letterSpacing: -0.5,
+                              ),
+                            );
+                          },
                         ),
                         const SizedBox(height: 8),
                         Text(
