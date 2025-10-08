@@ -1,9 +1,8 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:ross_ai_1/auth/provider/auth_provider.dart';
 import '../utils/loading_animation.dart';
-import '../variables/extracted_jurisdiction.dart';
-import '../variables/profile.dart';
 import 'provider/jurisdiction_provider.dart';
 
 class JurisdictionChecker extends StatefulWidget {
@@ -76,28 +75,45 @@ class _JurisdictionCheckerState extends State<JurisdictionChecker> {
               const SizedBox(width: 32),
               _buildNavItem("Timeline Extractor", '/timeline'),
               const SizedBox(width: 32),
-              GestureDetector(
-                onTap: () async {
-                  showLegalLoader(context);
-                  await Future.delayed(Duration(seconds: 4));
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/profile');
-                },
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.grey.shade200, width: 2),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
-                    child: Image.network(
-                      userProfile["profilePhoto"].toString(),
-                      fit: BoxFit.cover,
+              Consumer<FirebaseAuthProvider>(
+                builder: (context, provider, child) {
+                  final isDesktop = MediaQuery.of(context).size.width > 768;
+                  return GestureDetector(
+                    onTap: () async {
+                      showLegalLoader(context);
+                      await Future.delayed(Duration(seconds: 4));
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/profile');
+                    },
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.grey.shade200,
+                          width: 2,
+                        ),
+                      ),
+                      child: CircleAvatar(
+                        radius: isDesktop ? 48 : 43,
+                        backgroundColor: Colors.grey.shade200,
+                        child: Text(
+                          provider.userProfile?["name"].toString().substring(
+                                0,
+                                1,
+                              ) ??
+                              "",
+                          style: TextStyle(
+                            fontSize: isDesktop ? 24 : 20,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF1E293B),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ],
           ),

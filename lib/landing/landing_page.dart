@@ -687,6 +687,7 @@ class _LandingPageState extends State<LandingPage> {
         children: [
           Responsive(
             mobile: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildFooterLogo(),
                 const SizedBox(height: 32),
@@ -722,7 +723,7 @@ class _LandingPageState extends State<LandingPage> {
           const Divider(color: Colors.grey),
           const SizedBox(height: 20),
           const Text(
-            '© 2024 LexiChron. All Rights Reserved.',
+            '© 2025 Ross AI. All Rights Reserved.',
             style: TextStyle(color: Colors.grey),
           ),
         ],
@@ -739,7 +740,7 @@ class _LandingPageState extends State<LandingPage> {
             Icon(FontAwesomeIcons.scaleBalanced, color: Colors.indigo[300]),
             const SizedBox(width: 8),
             const Text(
-              'LexiChron',
+              'Ross AI',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,

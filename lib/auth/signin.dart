@@ -160,19 +160,21 @@ class _LoginPageState extends State<LoginPage> {
         Text(
           "Welcome Back",
           style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey.shade800,
-            letterSpacing: -0.5,
+            fontSize: 34,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF1E293B),
+            letterSpacing: -0.8,
+            height: 1.1,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         Text(
           "Sign in to continue to ROSS AI",
           style: TextStyle(
-            fontSize: 16,
-            color: Colors.grey.shade600,
-            fontWeight: FontWeight.w400,
+            fontSize: 17,
+            color: const Color(0xFF64748B),
+            fontWeight: FontWeight.w500,
+            height: 1.4,
           ),
         ),
       ],
@@ -199,12 +201,17 @@ class _LoginPageState extends State<LoginPage> {
           margin: const EdgeInsets.all(12),
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.blue.shade50,
+            gradient: LinearGradient(
+              colors: [
+                const Color(0xFF3B82F6).withOpacity(0.15),
+                const Color(0xFF1D4ED8).withOpacity(0.1),
+              ],
+            ),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
             Icons.email_outlined,
-            color: Colors.blue.shade600,
+            color: const Color(0xFF1D4ED8),
             size: 20,
           ),
         ),
@@ -254,12 +261,17 @@ class _LoginPageState extends State<LoginPage> {
               margin: const EdgeInsets.all(12),
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                gradient: LinearGradient(
+                  colors: [
+                    const Color(0xFF3B82F6).withOpacity(0.15),
+                    const Color(0xFF1D4ED8).withOpacity(0.1),
+                  ],
+                ),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 Icons.lock_outline,
-                color: Colors.blue.shade600,
+                color: const Color(0xFF1D4ED8),
                 size: 20,
               ),
             ),
@@ -311,13 +323,13 @@ class _LoginPageState extends State<LoginPage> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             gradient: LinearGradient(
-              colors: [Colors.blue.shade600, Colors.blue.shade700],
+              colors: [const Color(0xFF3B82F6), const Color(0xFF1D4ED8)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.blue.shade300.withOpacity(0.4),
+                color: const Color(0xFF3B82F6).withOpacity(0.4),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -518,7 +530,7 @@ class _LoginPageState extends State<LoginPage> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -528,22 +540,34 @@ class _LoginPageState extends State<LoginPage> {
             ),
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                maxWidth: isDesktop ? 400 : double.infinity,
+                maxWidth: isDesktop ? 440 : double.infinity,
                 minHeight: screenHeight - 100,
               ),
               child: IntrinsicHeight(
                 child: Container(
-                  padding: EdgeInsets.all(isDesktop ? 40 : 32),
+                  padding: EdgeInsets.all(isDesktop ? 48 : 36),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Colors.white, Colors.grey.shade50],
+                    ),
+                    borderRadius: BorderRadius.circular(28),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.08),
-                        blurRadius: 30,
-                        offset: const Offset(0, 15),
+                        blurRadius: 40,
+                        offset: const Offset(0, 8),
+                        spreadRadius: 0,
+                      ),
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 80,
+                        offset: const Offset(0, 16),
+                        spreadRadius: 0,
                       ),
                     ],
+                    border: Border.all(color: Colors.grey.shade100, width: 1),
                   ),
                   child: Form(
                     key: _formKey,

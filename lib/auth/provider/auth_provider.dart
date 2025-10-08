@@ -23,6 +23,9 @@ class FirebaseAuthProvider with ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _isAuthenticated;
 
+  Map<String, dynamic>? _userProfile;
+  Map<String, dynamic>? get userProfile => _userProfile;
+
   FirebaseAuthProvider() {
     _auth.authStateChanges().listen((User? user) {
       _currentUser = user;
@@ -320,16 +323,12 @@ class FirebaseAuthProvider with ChangeNotifier {
   // Sign out
   Future<void> signOut() async {
     try {
-      await GoogleSignIn.instance.initialize(
-        clientId: const String.fromEnvironment(
-          '1042853929889-33qo9f34dgraulecq5k591npl2pejt1m.apps.googleusercontent.com',
-        ),
-      );
+      await _auth.signOut();
       await GoogleSignIn.instance.signOut();
       await GoogleSignIn.instance.disconnect();
-      await _auth.signOut();
-      await _saveUserSession(null);
+      // await _saveUserSession(null);
     } catch (e) {
+      debugPrint('Error in sign out: $e');
       _errorMessage = _getErrorMessage(e.toString());
       notifyListeners();
     }
@@ -391,8 +390,8 @@ class FirebaseAuthProvider with ChangeNotifier {
   }
 
   // Get user profile from Firestore
-  Future<Map<String, dynamic>?> getUserProfile(String uid) async {
-    return await _userService.getUserProfile(uid);
+  Future<Map<String, dynamic>?> getUserProfile() async {
+    return await _userService.getUserProfile();
   }
 
   // Update user profile
@@ -402,7 +401,10 @@ class FirebaseAuthProvider with ChangeNotifier {
 
   // Get current user profile
   Future<Map<String, dynamic>?> getCurrentUserProfile() async {
-    return await _userService.getCurrentUserProfile();
+    final res = await _userService.getCurrentUserProfile();
+    _userProfile = res;
+    notifyListeners();
+    return res;
   }
 
   // Update current user profile

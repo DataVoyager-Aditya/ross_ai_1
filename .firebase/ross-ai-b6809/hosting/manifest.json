@@ -1,11 +1,11 @@
 {
-    "name": "ross_ai_1",
-    "short_name": "ross_ai_1",
+    "name": "Ross AI",
+    "short_name": "Ross",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "AI powered legal assistant",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

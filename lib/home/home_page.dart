@@ -1,9 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../variables/profile.dart';
-import '../variables/cases.dart';
-import 'utils/encryption.dart';
-import "utils/hover_tool_tip.dart";
+import 'package:ross_ai_1/auth/provider/auth_provider.dart';
 import 'components/features_grid.dart';
 import 'components/recent_cases.dart';
 import 'components/faq.dart';
@@ -11,20 +9,50 @@ import '../utils/loading_animation.dart';
 import '../timeline_extractor/provider/timeline_extractor_provider.dart';
 import '../timeline_extractor/timeline_detail_page.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    Future.microtask(() {
+      Provider.of<FirebaseAuthProvider>(
+        context,
+        listen: false,
+      ).getCurrentUserProfile();
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width > 768;
+
     return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(80),
-        child: AppBar(
-          automaticallyImplyLeading: false,
-          flexibleSpace: SafeArea(
+        preferredSize: Size.fromHeight(isDesktop ? 90 : 80),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
+                spreadRadius: 0,
+              ),
+            ],
+          ),
+          child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 20.0,
+              padding: EdgeInsets.symmetric(
+                horizontal: isDesktop ? 32.0 : 20.0,
+                vertical: isDesktop ? 24.0 : 20.0,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -36,29 +64,61 @@ class HomePage extends StatelessWidget {
                       Navigator.pop(context); // dismiss loader
                       Navigator.pushNamed(context, '/home');
                     },
-                    child: Image.asset(
-                      "assets/images/logo1.png",
-                      height: 80,
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                  SizedBox(
-                    height: 48,
-                    width: 48,
-                    child: GestureDetector(
-                      onTap: () async {
-                        showLegalLoader(context);
-                        await Future.delayed(Duration(seconds: 2));
-                        Navigator.pop(context); // dismiss loader
-                        Navigator.pushNamed(context, '/profile');
-                      },
-                      child: CircleAvatar(
-                        radius: 24,
-                        backgroundImage: NetworkImage(
-                          userProfile["profilePhoto"].toString(),
-                        ),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.white,
+                      ),
+                      child: Image.asset(
+                        "assets/images/logo1.png",
+                        height: isDesktop ? 50 : 45,
+                        fit: BoxFit.contain,
                       ),
                     ),
+                  ),
+                  Consumer<FirebaseAuthProvider>(
+                    builder: (context, provider, child) {
+                      return GestureDetector(
+                        onTap: () async {
+                          showLegalLoader(context);
+                          await Future.delayed(Duration(seconds: 1));
+                          Navigator.pop(context); // dismiss loader
+                          Navigator.pushNamed(context, '/profile');
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF3B82F6).withOpacity(0.2),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: CircleAvatar(
+                            radius: isDesktop ? 28 : 24,
+                            backgroundColor: Colors.white,
+                            child: CircleAvatar(
+                              radius: isDesktop ? 48 : 43,
+                              backgroundColor: Colors.grey.shade200,
+                              child: Text(
+                                provider.userProfile?["name"]
+                                        .toString()
+                                        .substring(0, 1) ??
+                                    "",
+                                style: TextStyle(
+                                  fontSize: isDesktop ? 24 : 20,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF1E293B),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -72,21 +132,82 @@ class HomePage extends StatelessWidget {
         scrollDirection: Axis.vertical,
         child: Center(
           child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: 1000),
+            constraints: BoxConstraints(
+              maxWidth: isDesktop ? 1200 : double.infinity,
+            ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24.0,
-                vertical: 35.0,
+              padding: EdgeInsets.symmetric(
+                horizontal: isDesktop ? 40.0 : 24.0,
+                vertical: isDesktop ? 48.0 : 32.0,
               ),
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start, // 👈 aligns heading with cards
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Welcome, Aditya 👋 Let’s simplify your legal research",
-                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                  // Welcome Section
+                  Container(
+                    padding: EdgeInsets.all(isDesktop ? 32.0 : 24.0),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFF3B82F6).withOpacity(0.1),
+                          const Color(0xFF1D4ED8).withOpacity(0.05),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: const Color(0xFF3B82F6).withOpacity(0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Welcome, ${FirebaseAuth.instance.currentUser?.displayName} 👋",
+                          style: TextStyle(
+                            fontSize: isDesktop ? 36 : 28,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF1E293B),
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "Let's simplify your legal research with AI-powered tools",
+                          style: TextStyle(
+                            fontSize: isDesktop ? 18 : 16,
+                            color: const Color(0xFF475569),
+                            fontWeight: FontWeight.w500,
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  SizedBox(height: 30),
+                  SizedBox(height: isDesktop ? 48 : 32),
+
+                  // Features Section Header
+                  Text(
+                    "AI-Powered Legal Tools",
+                    style: TextStyle(
+                      fontSize: isDesktop ? 28 : 24,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF1E293B),
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    "Streamline your legal workflow with intelligent automation",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: const Color(0xFF64748B),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: isDesktop ? 32 : 24),
                   Wrap(
                     spacing: 20,
                     runSpacing: 20,
@@ -139,12 +260,28 @@ class HomePage extends StatelessWidget {
                       // ),
                     ],
                   ),
-                  SizedBox(height: 60),
+                  SizedBox(height: isDesktop ? 64 : 48),
+
+                  // Recent Cases Section Header
                   Text(
                     "Your Recent Cases",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: isDesktop ? 28 : 24,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF1E293B),
+                      letterSpacing: -0.5,
+                    ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 12),
+                  Text(
+                    "Continue working on your legal timeline extractions",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: const Color(0xFF64748B),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: isDesktop ? 32 : 24),
 
                   // Recent Cases from Firestore
                   Consumer<TimelineExtractorProvider>(
@@ -162,16 +299,12 @@ class HomePage extends StatelessWidget {
                           } else if (snapshot.hasData &&
                               snapshot.data!.isNotEmpty) {
                             final cases = snapshot.data!;
-                            return SizedBox(
-                              height: 80,
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: cases.length,
-                                itemBuilder: (context, index) {
-                                  final caseItem = cases[index];
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 20.0),
-                                    child: GestureDetector(
+                            return Wrap(
+                              spacing: 20,
+                              runSpacing: 20,
+                              children: cases
+                                  .map(
+                                    (caseItem) => GestureDetector(
                                       onTap: () {
                                         Navigator.push(
                                           context,
@@ -191,9 +324,8 @@ class HomePage extends StatelessWidget {
                                         caseDate: caseItem['uploadedAt'],
                                       ),
                                     ),
-                                  );
-                                },
-                              ),
+                                  )
+                                  .toList(),
                             );
                           } else {
                             return const EmptyCase();
@@ -202,13 +334,30 @@ class HomePage extends StatelessWidget {
                       );
                     },
                   ),
-                  SizedBox(height: 60),
+                  SizedBox(height: isDesktop ? 64 : 48),
+
+                  // FAQ Section Header
                   Text(
                     "Frequently Asked Questions",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: isDesktop ? 28 : 24,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF1E293B),
+                      letterSpacing: -0.5,
+                    ),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 12),
+                  Text(
+                    "Get answers to common questions about our AI legal tools",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: const Color(0xFF64748B),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: isDesktop ? 32 : 24),
                   FAQSection(),
+                  SizedBox(height: isDesktop ? 48 : 32),
                 ],
               ),
             ),

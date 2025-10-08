@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:ross_ai_1/auth/provider/auth_provider.dart';
 import "package:ross_ai_1/precedent_finder/components/precedent_tile.dart";
-import 'package:ross_ai_1/variables/profile.dart';
-import "package:ross_ai_1/variables/precedents.dart"; 
+import "package:ross_ai_1/variables/precedents.dart";
 import '../utils/loading_animation.dart';
 
 class PrecedentFinder extends StatefulWidget {
@@ -53,11 +54,11 @@ class _PrecedentFinderState extends State<PrecedentFinder> {
                 children: [
                   GestureDetector(
                     onTap: () async {
-                          showLegalLoader(context);
-                          await Future.delayed(Duration(seconds: 4));
-                          Navigator.pop(context); // dismiss loader
-                          Navigator.pushNamed(context, '/home');
-                        },
+                      showLegalLoader(context);
+                      await Future.delayed(Duration(seconds: 4));
+                      Navigator.pop(context); // dismiss loader
+                      Navigator.pushNamed(context, '/home');
+                    },
                     child: Image.asset(
                       "assets/images/logo1.png",
                       height: 80,
@@ -73,7 +74,11 @@ class _PrecedentFinderState extends State<PrecedentFinder> {
                           Navigator.pop(context); // dismiss loader
                           Navigator.pushNamed(context, '/home');
                         },
-                        child: const Text("Dashboard", style: TextStyle(fontSize: 15))),
+                        child: const Text(
+                          "Dashboard",
+                          style: TextStyle(fontSize: 15),
+                        ),
+                      ),
                       const SizedBox(width: 35),
                       GestureDetector(
                         onTap: () async {
@@ -101,19 +106,34 @@ class _PrecedentFinderState extends State<PrecedentFinder> {
                         ),
                       ),
                       const SizedBox(width: 35),
-                      GestureDetector(
-                        onTap: () async {
-                          showLegalLoader(context);
-                          await Future.delayed(Duration(seconds: 4));
-                          Navigator.pop(context); // dismiss loader
-                          Navigator.pushNamed(context, '/profile');
+                      Consumer<FirebaseAuthProvider>(
+                        builder: (context, provider, child) {
+                          final isDesktop =
+                              MediaQuery.of(context).size.width > 768;
+                          return GestureDetector(
+                            onTap: () async {
+                              showLegalLoader(context);
+                              await Future.delayed(Duration(seconds: 4));
+                              Navigator.pop(context); // dismiss loader
+                              Navigator.pushNamed(context, '/profile');
+                            },
+                            child: CircleAvatar(
+                              radius: isDesktop ? 48 : 43,
+                              backgroundColor: Colors.grey.shade200,
+                              child: Text(
+                                provider.userProfile?["name"]
+                                        .toString()
+                                        .substring(0, 1) ??
+                                    "",
+                                style: TextStyle(
+                                  fontSize: isDesktop ? 24 : 20,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF1E293B),
+                                ),
+                              ),
+                            ),
+                          );
                         },
-                        child: CircleAvatar(
-                          radius: 24,
-                          backgroundImage: NetworkImage(
-                            userProfile["profilePhoto"].toString(),
-                          ),
-                        ),
                       ),
                     ],
                   ),
@@ -282,8 +302,7 @@ class _PrecedentFinderState extends State<PrecedentFinder> {
                               final precedent = precedents[index];
                               return PrecedentTile(
                                 title: precedent['title'] ?? 'No Title',
-                                summary:
-                                    precedent['summary'] ?? 'No Summary',
+                                summary: precedent['summary'] ?? 'No Summary',
                                 bench: precedent['bench'] ?? 'Unknown Bench',
                                 date: precedent['date'] ?? 'Unknown Date',
                               );

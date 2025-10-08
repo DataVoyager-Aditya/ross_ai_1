@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:ross_ai_1/auth/provider/auth_provider.dart';
 import 'package:ross_ai_1/firebase_options.dart';
@@ -21,29 +22,25 @@ import "package:ross_ai_1/auth/signup.dart";
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runZonedGuarded(
-    () {
-      runApp(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (context) => FirebaseAuthProvider()),
-            ChangeNotifierProvider(
-              create: (context) => TimelineExtractorProvider(),
-            ),
-            ChangeNotifierProvider(create: (context) => JurisdictionProvider()),
-          ],
-          child: const MyApp(),
-        ),
-      );
-    },
-    (error, stackTrace) {
-      // Handle errors here, such as logging them to a service
-      print('Caught error: $error');
-      print('Stack trace: $stackTrace');
-    },
+  await GoogleSignIn.instance.initialize(
+    clientId: const String.fromEnvironment(
+      '1042853929889-33qo9f34dgraulecq5k591npl2pejt1m.apps.googleusercontent.com',
+    ),
   );
-  // Uncomment the line below if you want to run the app directly without error handling
-  //
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => FirebaseAuthProvider()..getCurrentUserProfile(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => TimelineExtractorProvider(),
+        ),
+        ChangeNotifierProvider(create: (context) => JurisdictionProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

@@ -826,7 +826,7 @@ class _SignUpPageState extends State<SignUpPage> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -841,17 +841,29 @@ class _SignUpPageState extends State<SignUpPage> {
               ),
               child: IntrinsicHeight(
                 child: Container(
-                  padding: EdgeInsets.all(isDesktop ? 40 : 32),
+                  padding: EdgeInsets.all(isDesktop ? 48 : 36),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Colors.white, Colors.grey.shade50],
+                    ),
+                    borderRadius: BorderRadius.circular(28),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.08),
-                        blurRadius: 30,
-                        offset: const Offset(0, 15),
+                        blurRadius: 40,
+                        offset: const Offset(0, 8),
+                        spreadRadius: 0,
+                      ),
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 80,
+                        offset: const Offset(0, 16),
+                        spreadRadius: 0,
                       ),
                     ],
+                    border: Border.all(color: Colors.grey.shade100, width: 1),
                   ),
                   child: Form(
                     key: _formKey,

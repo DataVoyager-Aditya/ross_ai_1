@@ -33,11 +33,11 @@ class UserService {
   }
 
   // Get user profile
-  Future<Map<String, dynamic>?> getUserProfile(String uid) async {
+  Future<Map<String, dynamic>?> getUserProfile() async {
     try {
-      DocumentSnapshot doc = await _firestore
+      var doc = await _firestore
           .collection('users')
-          .doc(uid)
+          .doc(FirebaseAuth.instance.currentUser?.uid)
           .get();
       if (doc.exists) {
         return doc.data() as Map<String, dynamic>;
@@ -132,7 +132,7 @@ class UserService {
   Future<Map<String, dynamic>?> getCurrentUserProfile() async {
     User? currentUser = _auth.currentUser;
     if (currentUser != null) {
-      return await getUserProfile(currentUser.uid);
+      return await getUserProfile();
     }
     return null;
   }
