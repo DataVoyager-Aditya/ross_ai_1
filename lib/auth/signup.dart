@@ -34,6 +34,7 @@ class _SignUpPageState extends State<SignUpPage> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   String? _profilePhotoUrl;
+  bool _acceptedTerms = false;
 
   @override
   void dispose() {
@@ -73,6 +74,12 @@ class _SignUpPageState extends State<SignUpPage> {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedCaseType == null) {
       _showErrorSnackBar('Please select your role');
+      return;
+    }
+    if (!_acceptedTerms) {
+      _showErrorSnackBar(
+        'Please accept the Terms and Conditions and Privacy Policy',
+      );
       return;
     }
 
@@ -130,23 +137,6 @@ class _SignUpPageState extends State<SignUpPage> {
     );
 
     final user = await authProvider.signInWithGoogle();
-
-    if (user != null && mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
-    } else if (mounted && authProvider.errorMessage != null) {
-      _showErrorSnackBar(authProvider.errorMessage!);
-    }
-  }
-
-  Future<void> _handleGuestAccess() async {
-    final authProvider = Provider.of<FirebaseAuthProvider>(
-      context,
-      listen: false,
-    );
-
-    final user = await authProvider.signInAsGuest();
 
     if (user != null && mounted) {
       Navigator.of(context).pushReplacement(
@@ -747,49 +737,62 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  Widget _buildGuestButton() {
-    return Consumer<FirebaseAuthProvider>(
-      builder: (context, authProvider, child) {
-        return Container(
-          width: double.infinity,
-          height: 56,
-          child: OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: Colors.grey.shade300, width: 1.5),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              backgroundColor: Colors.white,
-            ),
-            onPressed: authProvider.isLoading ? null : _handleGuestAccess,
-            child: authProvider.isLoading
-                ? const SizedBox(
-                    height: 24,
-                    width: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2.5),
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.person_outline,
-                        color: Colors.grey.shade600,
-                        size: 24,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        "Continue as Guest",
-                        style: TextStyle(
-                          color: Colors.grey.shade700,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
+  Widget _buildTermsAcceptance() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Checkbox(
+          value: _acceptedTerms,
+          onChanged: (value) {
+            setState(() {
+              _acceptedTerms = value ?? false;
+            });
+          },
+          activeColor: Colors.blue.shade600,
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 12.0),
+            child: Wrap(
+              children: [
+                Text(
+                  "I agree to the ",
+                  style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
+                ),
+                GestureDetector(
+                  onTap: () =>
+                      Navigator.pushNamed(context, '/terms-conditions'),
+                  child: Text(
+                    "Terms and Conditions",
+                    style: TextStyle(
+                      color: Colors.blue.shade600,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      decoration: TextDecoration.underline,
+                    ),
                   ),
+                ),
+                Text(
+                  " and ",
+                  style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
+                ),
+                GestureDetector(
+                  onTap: () => Navigator.pushNamed(context, '/privacy-policy'),
+                  child: Text(
+                    "Privacy Policy",
+                    style: TextStyle(
+                      color: Colors.blue.shade600,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 
@@ -885,14 +888,14 @@ class _SignUpPageState extends State<SignUpPage> {
                         _buildPasswordField(),
                         const SizedBox(height: 20),
                         _buildConfirmPasswordField(),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 20),
+                        _buildTermsAcceptance(),
+                        const SizedBox(height: 24),
                         _buildSignUpButton(),
                         const SizedBox(height: 24),
                         _buildDivider(),
                         const SizedBox(height: 24),
                         _buildGoogleButton(),
-                        const SizedBox(height: 16),
-                        _buildGuestButton(),
                         const SizedBox(height: 32),
                         _buildFooterLinks(),
                       ],

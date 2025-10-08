@@ -357,32 +357,77 @@ class _ProfilePageState extends State<ProfilePage> {
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                               ),
-                              onPressed: () {
-                                userProfile["name"] = nameController.text
-                                    .trim();
-                                userProfile["email"] = emailController.text
-                                    .trim();
-                                userProfile["role"] = role;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.check_circle,
-                                          color: Colors.white,
-                                          size: 20,
+                              onPressed: () async {
+                                try {
+                                  // Update the user profile in Firestore
+                                  await provider.updateCurrentUserProfile({
+                                    'name': nameController.text.trim(),
+                                    'email': emailController.text.trim(),
+                                    'role': role.isNotEmpty
+                                        ? role
+                                        : userProfile["role"],
+                                  });
+
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.check_circle,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Text(
+                                              "Profile updated successfully!",
+                                            ),
+                                          ],
                                         ),
-                                        const SizedBox(width: 12),
-                                        Text("Profile updated successfully!"),
-                                      ],
-                                    ),
-                                    backgroundColor: const Color(0xFF10B981),
-                                    behavior: SnackBarBehavior.floating,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                );
+                                        backgroundColor: const Color(
+                                          0xFF10B981,
+                                        ),
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                    // Refresh the profile data
+                                    await provider.getCurrentUserProfile();
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.error_outline,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Text(
+                                              "Failed to update profile: $e",
+                                            ),
+                                          ],
+                                        ),
+                                        backgroundColor: const Color(
+                                          0xFFEF4444,
+                                        ),
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                }
                               },
                               child: Text(
                                 "Update Profile",
@@ -451,9 +496,34 @@ class _ProfilePageState extends State<ProfilePage> {
                                 );
 
                                 if (shouldSignOut == true && context.mounted) {
-                                  Future.microtask(() => provider.signOut());
-                                  if (context.mounted) {
-                                    Navigator.pushNamed(context, '/signin');
+                                  try {
+                                    // Sign out from Firebase
+                                    await provider.signOut();
+
+                                    // Navigate to signin page and clear the navigation stack
+                                    if (context.mounted) {
+                                      Navigator.of(
+                                        context,
+                                      ).pushNamedAndRemoveUntil(
+                                        '/signin',
+                                        (route) => false,
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            "Error signing out: $e",
+                                          ),
+                                          backgroundColor: const Color(
+                                            0xFFEF4444,
+                                          ),
+                                        ),
+                                      );
+                                    }
                                   }
                                 }
                               },

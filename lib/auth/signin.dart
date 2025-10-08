@@ -70,24 +70,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // Handle guest access
-  Future<void> _handleGuestAccess() async {
-    final authProvider = Provider.of<FirebaseAuthProvider>(
-      context,
-      listen: false,
-    );
-
-    final user = await authProvider.signInAsGuest();
-
-    if (user != null && mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
-    } else if (mounted && authProvider.errorMessage != null) {
-      _showErrorSnackBar(authProvider.errorMessage!);
-    }
-  }
-
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -433,52 +415,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buildGuestButton() {
-    return Consumer<FirebaseAuthProvider>(
-      builder: (context, authProvider, child) {
-        return Container(
-          width: double.infinity,
-          height: 56,
-          child: OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: Colors.grey.shade300, width: 1.5),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              backgroundColor: Colors.white,
-            ),
-            onPressed: authProvider.isLoading ? null : _handleGuestAccess,
-            child: authProvider.isLoading
-                ? const SizedBox(
-                    height: 24,
-                    width: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2.5),
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.person_outline,
-                        color: Colors.grey.shade600,
-                        size: 24,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        "Continue as Guest",
-                        style: TextStyle(
-                          color: Colors.grey.shade700,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
-        );
-      },
-    );
-  }
-
   Widget _buildFooterLinks() {
     return Consumer<FirebaseAuthProvider>(
       builder: (context, authProvider, child) {
@@ -517,6 +453,39 @@ class _LoginPageState extends State<LoginPage> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                GestureDetector(
+                  onTap: () =>
+                      Navigator.pushNamed(context, '/terms-conditions'),
+                  child: Text(
+                    "Terms & Conditions",
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 13,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+                Text(
+                  " | ",
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                ),
+                GestureDetector(
+                  onTap: () => Navigator.pushNamed(context, '/privacy-policy'),
+                  child: Text(
+                    "Privacy Policy",
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 13,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         );
@@ -587,8 +556,6 @@ class _LoginPageState extends State<LoginPage> {
                         _buildDivider(),
                         const SizedBox(height: 24),
                         _buildGoogleButton(),
-                        const SizedBox(height: 16),
-                        _buildGuestButton(),
                         const SizedBox(height: 32),
                         _buildFooterLinks(),
                       ],

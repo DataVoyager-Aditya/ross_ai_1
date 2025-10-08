@@ -795,9 +795,27 @@ class _LandingPageState extends State<LandingPage> {
           ),
         ),
         const SizedBox(height: 16),
-        const Text('Terms of Service', style: TextStyle(color: Colors.grey)),
+        GestureDetector(
+          onTap: () => Navigator.pushNamed(context, '/terms-conditions'),
+          child: const Text(
+            'Terms of Service',
+            style: TextStyle(
+              color: Colors.grey,
+              decoration: TextDecoration.underline,
+            ),
+          ),
+        ),
         const SizedBox(height: 8),
-        const Text('Privacy Policy', style: TextStyle(color: Colors.grey)),
+        GestureDetector(
+          onTap: () => Navigator.pushNamed(context, '/privacy-policy'),
+          child: const Text(
+            'Privacy Policy',
+            style: TextStyle(
+              color: Colors.grey,
+              decoration: TextDecoration.underline,
+            ),
+          ),
+        ),
       ],
     );
   }

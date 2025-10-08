@@ -18,6 +18,8 @@ import '../precedent_finder/precedent_finder.dart';
 import '../timeline_extractor/timeline_extractor.dart';
 import "package:ross_ai_1/auth/signin.dart";
 import "package:ross_ai_1/auth/signup.dart";
+import 'package:ross_ai_1/legal/privacy_policy_page.dart';
+import 'package:ross_ai_1/legal/terms_conditions_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -79,6 +81,9 @@ class MyApp extends StatelessWidget {
         '/feedback': (_) => const FeedbackPage(),
         '/login': (context) => const LoginPage(),
         '/signup': (context) => const SignUpPage(),
+        '/signin': (context) => const LoginPage(),
+        '/privacy-policy': (context) => const PrivacyPolicyPage(),
+        '/terms-conditions': (context) => const TermsConditionsPage(),
       },
     );
   }
